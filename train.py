@@ -16,6 +16,7 @@ slim = tf.contrib.slim
 
 
 flags = tf.app.flags
+
 FLAGS = flags.FLAGS
 
 
@@ -104,7 +105,7 @@ def main(unused_argv):
 
         # TODO
         # with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
-        logits = tmvcnn.tmvcnn(X)
+        logits = tmvcnn.tmvcnn(X, num_classes, dropout_keep_prob)
 
         tf.losses.sparse_softmax_cross_entropy(labels=groud_truth, logits=logits)
 
