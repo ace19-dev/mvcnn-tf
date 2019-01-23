@@ -18,4 +18,4 @@ texture classification deep learning
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
-    - ![](assets/mvcnn_framework.png)
+![](assets/mvcnn_framework.png)
