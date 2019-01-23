@@ -1,6 +1,5 @@
 # texture-classification
 texture classification deep learning
-![](assets/mvcnn_framework.png)
 
 ## Data
 - 
@@ -13,7 +12,10 @@ texture classification deep learning
 - classification
 
 ## TODO
-- 
+- Texture classification research
+- color balancing research
+- ...
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
+    - ![](assets/mvcnn_framework.png)
