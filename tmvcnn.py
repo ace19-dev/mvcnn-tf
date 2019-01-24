@@ -44,7 +44,7 @@ def tmvcnn(inputs,
         for i in range(n_views):
             view_batches = tf.gather(views, i)  # N x H x W x C
 
-            net = model(view_batches, is_training=is_training)
+            net = model(view_batches, training=is_training)
             view_pool.append(net)
 
         # TODO pooling, classification, ...

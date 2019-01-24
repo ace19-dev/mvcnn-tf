@@ -12,6 +12,7 @@ texture classification deep learning
 - classification
 
 ## TODO
+- apply resnet18(?)
 - Texture classification research
 - color balancing research
 - ...

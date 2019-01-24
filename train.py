@@ -67,21 +67,22 @@ flags.DEFINE_boolean('ignore_missing_vars',
                      'When restoring a checkpoint would ignore missing variables.')
 
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/kgc',
+                    # '/home/ace19/dl_data/kgc',
+                    '/home/ace19/dl_data/modelnet', # temporary source path
                     'Where the dataset reside.')
 
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 32, 'batch size')
+flags.DEFINE_integer('batch_size', 4, 'batch size')
 flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels',
-                    '0,1',
+                    'airplane,bed,bookshelf,cone,person,toilet,vase',
                     'Labels to use')
 
 
-KGC_TRAINING_DATA_SIZE = 1000
+KGC_TRAINING_DATA_SIZE = 2780
 
 
 def main(unused_argv):
