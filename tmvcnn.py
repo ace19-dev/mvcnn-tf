@@ -24,7 +24,7 @@ def _view_pooling(view_features, name):
 
 def tmvcnn(inputs,
            num_classes,
-           dropout_keep_prob,
+           dropout_keep_prob=0.8,
            is_training=True,
            reuse=tf.AUTO_REUSE,
            scope='t-mvcnn'):

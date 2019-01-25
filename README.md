@@ -12,8 +12,11 @@ texture classification deep learning
 - classification
 
 ## TODO
+- check usage tf.confusion_matrix
+- check usage assert
 - texture classification research
 - color balancing research
+- retrieve image
 - ...
 
 ## References from

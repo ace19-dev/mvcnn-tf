@@ -8,7 +8,6 @@
 
 import datetime
 import os
-import csv
 
 import tensorflow as tf
 
@@ -28,7 +27,8 @@ MODELNET_EVAL_DATA_SIZE = 540
 
 
 # Dataset settings.
-flags.DEFINE_string('dataset_path', '/home/ace19/dl_data/modelnet/test.record',
+flags.DEFINE_string('dataset_path',
+                    '/home/ace19/dl_data/modelnet/test.record',
                     'Where the dataset reside.')
 
 flags.DEFINE_string('checkpoint_path',
@@ -86,8 +86,9 @@ def main(unused_argv):
         else:
             checkpoint_path = FLAGS.checkpoint_path
         saver.restore(sess, checkpoint_path)
-
-        global_step = checkpoint_path.split('/')[-1].split('-')[-1]
+        # global_step = checkpoint_path.split('/')[-1].split('-')[-1]
+        # tf.logging.info('Successfully loaded model from %s at step=%s.' % (
+        #     checkpoint_path, global_step))
 
         # Get the number of training/validation steps per epoch
         batches = int(MODELNET_EVAL_DATA_SIZE / FLAGS.batch_size)
@@ -98,10 +99,7 @@ def main(unused_argv):
         # prediction & make results into csv file.
         ##################################################
         start_time = datetime.datetime.now()
-        print("Start prediction: {}".format(start_time))
-
-        # id2name = {i: name for i, name in enumerate(labels)}
-        # submission = {}
+        tf.logging.info("Start prediction: %s" % start_time)
 
         eval_filenames = os.path.join(FLAGS.dataset_path)
         sess.run(iterator.initializer, feed_dict={filenames: eval_filenames})
@@ -112,6 +110,7 @@ def main(unused_argv):
         for i in range(batches):
             test_batch_xs, test_batch_ys = sess.run(next_batch)
             # # Verify image
+            # assert not np.any(np.isnan(train_batch_xs))
             # n_batch = batch_xs.shape[0]
             # for i in range(n_batch):
             #     img = batch_xs[i]
@@ -141,7 +140,7 @@ def main(unused_argv):
                                                                  MODELNET_EVAL_DATA_SIZE))
 
         end_time = datetime.datetime.now()
-        tf.logging.info('#%d Data, End prediction: %s' % (MODELNET_EVAL_DATA_SIZE, end_time))
+        tf.logging.info('End prediction: %s' % end_time)
         tf.logging.info('prediction waste time: %s' % (end_time - start_time))
 
 
