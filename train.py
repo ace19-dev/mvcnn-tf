@@ -100,14 +100,14 @@ def main(unused_argv):
 
         X = tf.placeholder(tf.float32,
                            [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3])
-        groud_truth = tf.placeholder(tf.int64, [None], name='groud_truth')
+        ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
         is_training = tf.placeholder(tf.bool)
         dropout_keep_prob = tf.placeholder(tf.float32)
         learning_rate = tf.placeholder(tf.float32)
 
         logits = tmvcnn.tmvcnn(X, num_classes, dropout_keep_prob)
 
-        tf.losses.sparse_softmax_cross_entropy(labels=groud_truth, logits=logits)
+        tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
 
         # Gather update ops. These contain, for example, the updates for the
         # batch_norm variables created by model.
@@ -117,8 +117,8 @@ def main(unused_argv):
         summaries = set(tf.get_collection(tf.GraphKeys.SUMMARIES))
 
         predition = tf.argmax(logits, 1, name='prediction')
-        correct_predition = tf.equal(predition, groud_truth)
-        confusion_matrix = tf.confusion_matrix(groud_truth,
+        correct_predition = tf.equal(predition, ground_truth)
+        confusion_matrix = tf.confusion_matrix(ground_truth,
                                                predition,
                                                num_classes=num_classes)
         accuracy = tf.reduce_mean(tf.cast(correct_predition, tf.float32))
@@ -211,7 +211,7 @@ def main(unused_argv):
                     train_summary, train_accuracy, train_loss, _ = \
                         sess.run([summary_op, accuracy, total_loss, train_op],
                         feed_dict={X: train_batch_xs,
-                                   groud_truth: train_batch_ys,
+                                   ground_truth: train_batch_ys,
                                    learning_rate: FLAGS.learning_rate,
                                    is_training: True,
                                    dropout_keep_prob: 0.8})
