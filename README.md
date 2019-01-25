@@ -16,7 +16,7 @@ texture classification deep learning
 - check usage assert
 - texture classification research
 - color balancing research
-- retrieve image
+- retrieve image - Deep Cosine Metric
 - ...
 
 ## References from
