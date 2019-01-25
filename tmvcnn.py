@@ -16,7 +16,7 @@ def _view_pooling(view_features, name):
     for v in view_features[1:]:
         v = tf.expand_dims(v, 0)
         vp = tf.concat([vp, v], 0)
-    print('vp before reducing:', vp.get_shape().as_list())
+    # print('vp before reducing:', vp.get_shape().as_list())
     vp = tf.reduce_max(vp, [0], name=name)
 
     return vp

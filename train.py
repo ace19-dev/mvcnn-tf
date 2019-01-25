@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import cv2
 import numpy as np
 
 from utils import train_utils
@@ -73,7 +74,7 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 100,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 4, 'batch size')
+flags.DEFINE_integer('batch_size', 8, 'batch size')
 flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
@@ -104,8 +105,6 @@ def main(unused_argv):
         dropout_keep_prob = tf.placeholder(tf.float32)
         learning_rate = tf.placeholder(tf.float32)
 
-        # TODO
-        # with slim.arg_scope(inception_v4.inception_v4_arg_scope()):
         logits = tmvcnn.tmvcnn(X, num_classes, dropout_keep_prob)
 
         tf.losses.sparse_softmax_cross_entropy(labels=groud_truth, logits=logits)
@@ -133,7 +132,7 @@ def main(unused_argv):
         for loss in tf.get_collection(tf.GraphKeys.LOSSES):
             summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
 
-        optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momenturm)
+        optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
 
         total_loss, grads_and_vars = train_utils.optimize(optimizer)
@@ -160,7 +159,8 @@ def main(unused_argv):
         # prepare data
         #####################
         tfrecord_names = tf.placeholder(tf.string, shape=[])
-        training_dataset = data.Dataset(tfrecord_names, FLAGS.height, FLAGS.width)
+        training_dataset = data.Dataset(tfrecord_names, FLAGS.height, FLAGS.width,
+                                        batch_size=FLAGS.batch_size)
         iterator = training_dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
@@ -218,7 +218,7 @@ def main(unused_argv):
 
                     train_writer.add_summary(train_summary, n_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
-                                    (n_epoch, step, FLAGS.base_learning_rate, train_accuracy * 100, train_loss))
+                                    (n_epoch, step, FLAGS.learning_rate, train_accuracy * 100, train_loss))
 
                 ###################################################
                 # TODO: Validate the model on the validation set
@@ -229,7 +229,6 @@ def main(unused_argv):
                     checkpoint_path = os.path.join(FLAGS.train_logdir, FLAGS.ckpt_name_to_save)
                     tf.logging.info('Saving to "%s-%d"', checkpoint_path, n_epoch)
                     saver.save(sess, checkpoint_path, global_step=n_epoch)
-
 
 
 if __name__ == '__main__':
