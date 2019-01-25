@@ -2,14 +2,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from resnet import resnet_model
+from nets import resnet_model
 
 
 DEFAULT_IMAGE_SIZE = 224
 NUM_CLASSES = 3
 
 class KGCModel(resnet_model.Model):
-    def __init__(self, resnet_size, data_format=None, num_classes=NUM_CLASSES,
+    def __init__(self, resnet_size, data_format='channels_last', num_classes=NUM_CLASSES,
                  resnet_version=resnet_model.DEFAULT_VERSION,
                  dtype=resnet_model.DEFAULT_DTYPE):
         """These are the parameters that work for Imagenet data.

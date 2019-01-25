@@ -18,6 +18,7 @@ def _view_pooling(view_features, name):
         vp = tf.concat([vp, v], 0)
     print('vp before reducing:', vp.get_shape().as_list())
     vp = tf.reduce_max(vp, [0], name=name)
+
     return vp
 
 
@@ -47,8 +48,17 @@ def tmvcnn(inputs,
             net = model(view_batches, training=is_training)
             view_pool.append(net)
 
-        # TODO pooling, classification, ...
-        logits = _view_pooling(view_pool, 'view_pooling')
+        # max pooling
+        net = _view_pooling(view_pool, 'view_pooling')
+        net = tf.reduce_mean(net, [1, 2], keepdims=True)
+        net = tf.identity(net, 'final_reduce_mean')
+
+        # ?, 1, 1, 512
+        net = tf.squeeze(net, [1, 2])
+        # ?, 512
+        net = tf.layers.dense(inputs=net, units=num_classes)
+        # ?, 7(n_classes)
+        logits = tf.identity(net, 'final_dense')
 
     return logits
 
