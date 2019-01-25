@@ -60,7 +60,7 @@ def tmvcnn(inputs,
         # ?, 7(n_classes)
         logits = tf.identity(net, 'final_dense')
 
-    return logits
+    return logits, net
 
 
 
