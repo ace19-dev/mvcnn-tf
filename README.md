@@ -1,4 +1,4 @@
-# texture-classification (MVCNN + )
+# MVCNN
 
 ## Data
 - modelnet
