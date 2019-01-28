@@ -8,7 +8,7 @@
 - execute train.py
 
 ## Evaluation
-- classification
+- eval.py
 
 ## TODO
 - check usage tf.confusion_matrix
