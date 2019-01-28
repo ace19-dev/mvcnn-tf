@@ -1,4 +1,4 @@
-# texture-classification
+# texture-classification (MVCNN + )
 texture classification deep learning
 
 ## Data
