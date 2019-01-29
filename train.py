@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 
 from utils import train_utils
-import tmvcnn
+import mvcnn
 import data
 
 
@@ -105,7 +105,7 @@ def main(unused_argv):
         dropout_keep_prob = tf.placeholder(tf.float32)
         learning_rate = tf.placeholder(tf.float32)
 
-        logits, feature = tmvcnn.tmvcnn(X, num_classes, dropout_keep_prob)
+        logits, feature = mvcnn.mvcnn(X, num_classes, dropout_keep_prob)
 
         tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
 

@@ -22,7 +22,7 @@ def _view_pooling(view_features, name):
     return vp
 
 
-def tmvcnn(inputs,
+def mvcnn(inputs,
            num_classes,
            dropout_keep_prob=0.8,
            is_training=True,
