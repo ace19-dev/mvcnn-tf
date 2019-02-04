@@ -101,12 +101,12 @@ def main(unused_argv):
         X = tf.placeholder(tf.float32,
                            [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3])
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
-        is_training = tf.placeholder(tf.bool)
-        dropout_keep_prob = tf.placeholder(tf.float32)
+        # is_training = tf.placeholder(tf.bool)
+        # dropout_keep_prob = tf.placeholder(tf.float32)
         learning_rate = tf.placeholder(tf.float32)
 
         # TODO - will use feature var for retrieval
-        logits, feature = mvcnn.mvcnn(X, num_classes, dropout_keep_prob)
+        logits, feature = mvcnn.mvcnn(X, num_classes)
 
         tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
 
@@ -213,9 +213,9 @@ def main(unused_argv):
                         sess.run([summary_op, accuracy, total_loss, train_op],
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
-                                   learning_rate: FLAGS.learning_rate,
-                                   is_training: True,
-                                   dropout_keep_prob: 0.8})
+                                   learning_rate: FLAGS.learning_rate,})
+                                   # is_training: True,})
+                                   # dropout_keep_prob: 0.8})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %

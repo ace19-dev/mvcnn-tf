@@ -12,18 +12,12 @@ import os
 import tensorflow as tf
 
 import data
-import tmvcnn
+import mvcnn
 
 slim = tf.contrib.slim
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-
-
-NUM_GROUP = 8
-
-# temporary constant
-MODELNET_EVAL_DATA_SIZE = 540
 
 
 # Dataset settings.
@@ -43,6 +37,10 @@ flags.DEFINE_string('labels',
                     'airplane,bed,bookshelf,cone,person,toilet,vase',
                     'number of classes')
 
+# temporary constant
+MODELNET_EVAL_DATA_SIZE = 540
+
+
 def main(unused_argv):
     tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -55,7 +53,7 @@ def main(unused_argv):
                        name='inputs')
     ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
 
-    logits = tmvcnn.tmvcnn(X, num_classes, is_training=False)
+    logits = mvcnn.mvcnn(X, num_classes, is_training=False)
 
     # prediction = tf.nn.softmax(logits)
     # predicted_labels = tf.argmax(prediction, 1)

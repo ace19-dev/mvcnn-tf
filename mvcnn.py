@@ -23,11 +23,11 @@ def _view_pooling(view_features, name):
 
 
 def mvcnn(inputs,
-           num_classes,
-           dropout_keep_prob=0.8,
-           is_training=True,
-           reuse=tf.AUTO_REUSE,
-           scope='t-mvcnn'):
+          num_classes,
+          # dropout_keep_prob=0.8,
+          is_training=True,
+          reuse=tf.AUTO_REUSE,
+          scope='t-mvcnn'):
     '''
     :param inputs: N x V x H x W x C tensor
     :return:
