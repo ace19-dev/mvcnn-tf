@@ -121,8 +121,8 @@ def main(unused_argv):
             #     cv2.destroyAllWindows()
 
             acc, conf_matrix = sess.run([accuracy, confusion_matrix],
-                                             feed_dict={X: test_batch_xs,
-                                                        ground_truth: test_batch_ys})
+                                        feed_dict={X: test_batch_xs,
+                                                   ground_truth: test_batch_ys})
 
             total_acc += acc
             count += 1
