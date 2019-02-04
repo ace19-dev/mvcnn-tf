@@ -105,6 +105,7 @@ def main(unused_argv):
         dropout_keep_prob = tf.placeholder(tf.float32)
         learning_rate = tf.placeholder(tf.float32)
 
+        # TODO - will use feature var for retrieval
         logits, feature = mvcnn.mvcnn(X, num_classes, dropout_keep_prob)
 
         tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
