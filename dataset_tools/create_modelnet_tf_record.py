@@ -23,10 +23,10 @@ from dataset_tools import dataset_util
 
 flags = tf.app.flags
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/kgc/base',
-                    'Root Directory to raw kgc dataset.')
+                    '/home/ace19/dl_data/modelnet/base',
+                    'Root Directory to raw modelnet dataset.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/kgc/train.record',
+                    '/home/ace19/dl_data/modelnet/train.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('dataset_category',
                     'train',
