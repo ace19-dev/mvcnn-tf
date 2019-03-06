@@ -27,7 +27,7 @@ def mvcnn(inputs,
           # dropout_keep_prob=0.8,
           is_training=True,
           reuse=tf.AUTO_REUSE,
-          scope='t-mvcnn'):
+          scope='mvcnn'):
     '''
     :param inputs: N x V x H x W x C tensor
     :return:
@@ -40,7 +40,7 @@ def mvcnn(inputs,
     # transpose views: (NxVxHxWxC) -> (VxNxHxWxC)
     views = tf.transpose(inputs, perm=[1, 0, 2, 3, 4])
 
-    with tf.variable_scope(scope, 't-mvcnn', [inputs], reuse=reuse):
+    with tf.variable_scope(scope, 'mvcnn', [inputs], reuse=reuse):
         view_pool = []
         for i in range(n_views):
             view_batches = tf.gather(views, i)  # N x H x W x C
