@@ -14,10 +14,7 @@
 ## TODO
 - check usage tf.confusion_matrix
 - color balancing research
-- retrieve image - Deep Cosine Metric
-- ...
+- retrieve image - Distance Metric Learning
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
-
-
