@@ -13,7 +13,8 @@
 
 ## TODO
 - check usage tf.confusion_matrix
-- color balancing research
+- apply imgaug
+- apply SENet
 - retrieve image - metric learning
 
 ## References from

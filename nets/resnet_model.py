@@ -30,6 +30,9 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+from nets.attention_module import se_block
+
+
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
 DEFAULT_VERSION = 2
@@ -138,7 +141,7 @@ def _building_block_v1(inputs, filters, training, projection_shortcut, strides,
 
 
 def _building_block_v2(inputs, filters, training, projection_shortcut, strides,
-                       data_format):
+                       data_format, attention_module=None):
     """A single block for ResNet v2, without a bottleneck.
     Batch normalization then ReLu then convolution as described by:
       Identity Mappings in Deep Residual Networks
@@ -176,6 +179,10 @@ def _building_block_v2(inputs, filters, training, projection_shortcut, strides,
     inputs = conv2d_fixed_padding(
         inputs=inputs, filters=filters, kernel_size=3, strides=1,
         data_format=data_format)
+
+    # Add SE_block
+    if attention_module == 'se_block':
+        inputs = se_block(inputs, 'se_block')
 
     return inputs + shortcut
 
@@ -289,7 +296,7 @@ def _bottleneck_block_v2(inputs, filters, training, projection_shortcut,
 
 
 def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
-                training, name, data_format):
+                training, name, data_format, attention_module=None):
     """Creates one layer of blocks for the ResNet model.
     Args:
       inputs: A tensor of size [batch, channels, height_in, width_in] or
@@ -319,10 +326,10 @@ def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
 
     # Only the first block per block_layer uses projection_shortcut and strides
     inputs = block_fn(inputs, filters, training, projection_shortcut, strides,
-                      data_format)
+                      data_format, attention_module=attention_module)
 
     for _ in range(1, blocks):
-        inputs = block_fn(inputs, filters, training, None, 1, data_format)
+        inputs = block_fn(inputs, filters, training, None, 1, data_format, attention_module=attention_module)
 
     return tf.identity(inputs, name)
 
@@ -450,7 +457,7 @@ class Model(object):
         return tf.variable_scope('resnet_model',
                                  custom_getter=self._custom_dtype_getter)
 
-    def __call__(self, inputs, training):
+    def __call__(self, inputs, training, attention_module=None):
         """Add operations to classify a batch of input images.
         Args:
           inputs: A Tensor representing a batch of input images.
@@ -493,7 +500,9 @@ class Model(object):
                     inputs=inputs, filters=num_filters, bottleneck=self.bottleneck,
                     block_fn=self.block_fn, blocks=num_blocks,
                     strides=self.block_strides[i], training=training,
-                    name='block_layer{}'.format(i + 1), data_format=self.data_format)
+                    name='block_layer{}'.format(i + 1), data_format=self.data_format,
+                    attention_module=attention_module
+                )
 
             # Only apply the BN and ReLU for model that does pre_activation in each
             # building/bottleneck block, eg resnet V2.

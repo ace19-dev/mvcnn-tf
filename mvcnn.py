@@ -120,6 +120,7 @@ def mvcnn(inputs,
         for i in range(n_views):
             view_batches = tf.gather(views, i)  # N x H x W x C
 
+            # TODO: apply SENet
             net = model(view_batches, training=is_training)
             view_pool.append(net)
 
