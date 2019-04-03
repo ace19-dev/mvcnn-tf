@@ -21,3 +21,4 @@
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
+- https://github.com/exekudos/se-resnet/blob/master/se_resnet.py
