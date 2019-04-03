@@ -11,10 +11,12 @@
 ## Evaluation
 - eval.py
 
+## Done
+- 
+
 ## TODO
 - check usage tf.confusion_matrix
 - apply imgaug
-- apply SENet
 - retrieve image - metric learning
 
 ## References from

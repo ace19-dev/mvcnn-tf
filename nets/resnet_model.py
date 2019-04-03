@@ -30,8 +30,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from nets.attention_module import se_block
-
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
@@ -71,11 +69,13 @@ def fixed_padding(inputs, kernel_size, data_format):
     pad_end = pad_total - pad_beg
 
     if data_format == 'channels_first':
-        padded_inputs = tf.pad(inputs, [[0, 0], [0, 0],
-                                        [pad_beg, pad_end], [pad_beg, pad_end]])
+        padded_inputs = tf.pad(tensor=inputs,
+                               paddings=[[0, 0], [0, 0], [pad_beg, pad_end],
+                                         [pad_beg, pad_end]])
     else:
-        padded_inputs = tf.pad(inputs, [[0, 0], [pad_beg, pad_end],
-                                        [pad_beg, pad_end], [0, 0]])
+        padded_inputs = tf.pad(tensor=inputs,
+                               paddings=[[0, 0], [pad_beg, pad_end],
+                                         [pad_beg, pad_end], [0, 0]])
     return padded_inputs
 
 
@@ -141,7 +141,7 @@ def _building_block_v1(inputs, filters, training, projection_shortcut, strides,
 
 
 def _building_block_v2(inputs, filters, training, projection_shortcut, strides,
-                       data_format, attention_module=None):
+                       data_format):
     """A single block for ResNet v2, without a bottleneck.
     Batch normalization then ReLu then convolution as described by:
       Identity Mappings in Deep Residual Networks
@@ -179,10 +179,6 @@ def _building_block_v2(inputs, filters, training, projection_shortcut, strides,
     inputs = conv2d_fixed_padding(
         inputs=inputs, filters=filters, kernel_size=3, strides=1,
         data_format=data_format)
-
-    # Add SE_block
-    if attention_module == 'se_block':
-        inputs = se_block(inputs, 'se_block')
 
     return inputs + shortcut
 
@@ -296,7 +292,7 @@ def _bottleneck_block_v2(inputs, filters, training, projection_shortcut,
 
 
 def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
-                training, name, data_format, attention_module=None):
+                training, name, data_format):
     """Creates one layer of blocks for the ResNet model.
     Args:
       inputs: A tensor of size [batch, channels, height_in, width_in] or
@@ -326,10 +322,10 @@ def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
 
     # Only the first block per block_layer uses projection_shortcut and strides
     inputs = block_fn(inputs, filters, training, projection_shortcut, strides,
-                      data_format, attention_module=attention_module)
+                      data_format)
 
     for _ in range(1, blocks):
-        inputs = block_fn(inputs, filters, training, None, 1, data_format, attention_module=attention_module)
+        inputs = block_fn(inputs, filters, training, None, 1, data_format)
 
     return tf.identity(inputs, name)
 
@@ -457,7 +453,7 @@ class Model(object):
         return tf.variable_scope('resnet_model',
                                  custom_getter=self._custom_dtype_getter)
 
-    def __call__(self, inputs, training, attention_module=None):
+    def __call__(self, inputs, training):
         """Add operations to classify a batch of input images.
         Args:
           inputs: A Tensor representing a batch of input images.
@@ -500,8 +496,7 @@ class Model(object):
                     inputs=inputs, filters=num_filters, bottleneck=self.bottleneck,
                     block_fn=self.block_fn, blocks=num_blocks,
                     strides=self.block_strides[i], training=training,
-                    name='block_layer{}'.format(i + 1), data_format=self.data_format,
-                    attention_module=attention_module
+                    name='block_layer{}'.format(i + 1), data_format=self.data_format
                 )
 
             # Only apply the BN and ReLU for model that does pre_activation in each
@@ -510,16 +505,17 @@ class Model(object):
                 inputs = batch_norm(inputs, training, self.data_format)
                 inputs = tf.nn.relu(inputs)
 
-            # The current top layer has shape
-            # `batch_size x pool_size x pool_size x final_size`.
-            # ResNet does an Average Pooling layer over pool_size,
-            # but that is the same as doing a reduce_mean. We do a reduce_mean
-            # here because it performs better than AveragePooling2D.
-            axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
-            inputs = tf.reduce_mean(inputs, axes, keepdims=True)
-            inputs = tf.identity(inputs, 'final_reduce_mean')
+            # # The current top layer has shape
+            # # `batch_size x pool_size x pool_size x final_size`.
+            # # ResNet does an Average Pooling layer over pool_size,
+            # # but that is the same as doing a reduce_mean. We do a reduce_mean
+            # # here because it performs better than AveragePooling2D.
+            # axes = [2, 3] if self.data_format == 'channels_first' else [1, 2]
+            # inputs = tf.reduce_mean(inputs, axes, keepdims=True)
+            # inputs = tf.identity(inputs, 'final_reduce_mean')
+            #
+            # inputs = tf.squeeze(inputs, axes)
+            # inputs = tf.layers.dense(inputs=inputs, units=self.num_classes)
+            # inputs = tf.identity(inputs, 'final_dense')
 
-            inputs = tf.squeeze(inputs, axes)
-            inputs = tf.layers.dense(inputs=inputs, units=self.num_classes)
-            inputs = tf.identity(inputs, 'final_dense')
             return inputs

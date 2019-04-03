@@ -103,6 +103,7 @@ def mvcnn(inputs,
           # dropout_keep_prob=0.8,
           is_training=True,
           reuse=tf.AUTO_REUSE,
+          attention_module=None,
           scope='mvcnn'):
     '''
     :param inputs: N x V x H x W x C tensor
@@ -120,7 +121,6 @@ def mvcnn(inputs,
         for i in range(n_views):
             view_batches = tf.gather(views, i)  # N x H x W x C
 
-            # TODO: apply SENet
             net = model(view_batches, training=is_training)
             view_pool.append(net)
 

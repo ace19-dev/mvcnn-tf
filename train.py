@@ -79,11 +79,11 @@ flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels',
-                    'airplane,bed,bookshelf,cone,person,toilet,vase',
+                    'airplane,bed,bookshelf,toilet,vase',
                     'Labels to use')
 
 
-KGC_TRAINING_DATA_SIZE = 2780
+KGC_TRAINING_DATA_SIZE = 2525
 
 
 def main(unused_argv):
