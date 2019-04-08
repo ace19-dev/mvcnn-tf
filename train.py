@@ -42,12 +42,12 @@ flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    # './pre-trained/resnet_v2_101_2017_04_14/resnet_v2_101.ckpt',
+                    # './pre-trained/resnet_v2_18.ckpt',
                     None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    'resnet_v2_101/logits',
-                    # None,
+                    # 'resnet_v2_18/logits',
+                    None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
@@ -61,7 +61,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_101',
+                    'resnet_v2_18',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -82,8 +82,9 @@ flags.DEFINE_string('labels',
                     'airplane,bed,bookshelf,toilet,vase',
                     'Labels to use')
 
-
-KGC_TRAINING_DATA_SIZE = 2525
+# temporary constant
+MODELNET_TRAIN_DATA_SIZE = 2525
+MODELNET_VALIDATE_DATA_SIZE = 350
 
 
 def main(unused_argv):
@@ -99,13 +100,14 @@ def main(unused_argv):
         global_step = tf.train.get_or_create_global_step()
 
         X = tf.placeholder(tf.float32,
-                           [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3])
+                           [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3],
+                           name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
-        # is_training = tf.placeholder(tf.bool)
-        # dropout_keep_prob = tf.placeholder(tf.float32)
+        is_training = tf.placeholder(tf.bool)
+        dropout_keep_prob = tf.placeholder(tf.float32)
         learning_rate = tf.placeholder(tf.float32)
 
-        # TODO - will use feature var for retrieval
+        # TODO - Use feature for retrieval
         logits, feature = mvcnn.mvcnn(X, num_classes)
 
         tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
@@ -160,8 +162,10 @@ def main(unused_argv):
         # prepare data
         #####################
         tfrecord_names = tf.placeholder(tf.string, shape=[])
-        training_dataset = data.Dataset(tfrecord_names, FLAGS.height, FLAGS.width,
-                                        batch_size=FLAGS.batch_size)
+        training_dataset = data.Dataset(tfrecord_names,
+                                        FLAGS.height,
+                                        FLAGS.width,
+                                        FLAGS.batch_size)
         iterator = training_dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
@@ -174,8 +178,8 @@ def main(unused_argv):
                 train_utils.restore_fn(FLAGS)
 
             start_epoch = 0
-            batches = int(KGC_TRAINING_DATA_SIZE / FLAGS.batch_size)
-            if KGC_TRAINING_DATA_SIZE % FLAGS.batch_size > 0:
+            batches = int(MODELNET_TRAIN_DATA_SIZE / FLAGS.batch_size)
+            if MODELNET_TRAIN_DATA_SIZE % FLAGS.batch_size > 0:
                 batches += 1
 
             # The filenames argument to the TFRecordDataset initializer can either
@@ -192,7 +196,6 @@ def main(unused_argv):
                 sess.run(iterator.initializer, feed_dict={tfrecord_names: tf_filenames})
                 for step in range(batches):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
-
                     # # Verify image
                     # assert not np.any(np.isnan(train_batch_xs))
                     # n_batch = train_batch_xs.shape[0]
@@ -213,9 +216,9 @@ def main(unused_argv):
                         sess.run([summary_op, accuracy, total_loss, train_op],
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
-                                   learning_rate: FLAGS.learning_rate,})
-                                   # is_training: True,})
-                                   # dropout_keep_prob: 0.8})
+                                   learning_rate: FLAGS.learning_rate,
+                                   is_training: True,
+                                   dropout_keep_prob: 0.8})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %

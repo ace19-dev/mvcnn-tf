@@ -11,14 +11,11 @@
 ## Evaluation
 - eval.py
 
-## Done
-- 
-
 ## TODO
-- check usage tf.confusion_matrix
-- apply imgaug
-- retrieve image - metric learning
+- retrieve module: metric learning
+    - Euclidean distance
+    - low-rank Mahalanobis metric
+    - cosine metric
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
-- https://github.com/exekudos/se-resnet/blob/master/se_resnet.py

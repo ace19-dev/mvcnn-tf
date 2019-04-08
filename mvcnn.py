@@ -7,14 +7,14 @@ from nets import resnet_model
 
 import tensorflow as tf
 
+slim = tf.contrib.slim
+
 
 RESNET_SIZE = 18
-DEFAULT_IMAGE_SIZE = 224
-NUM_CLASSES = 3
 
 
 class ModelnetModel(resnet_model.Model):
-    def __init__(self, resnet_size, data_format='channels_last', num_classes=NUM_CLASSES,
+    def __init__(self, resnet_size, data_format='channels_last', num_classes=10,
                  resnet_version=resnet_model.DEFAULT_VERSION,
                  dtype=resnet_model.DEFAULT_DTYPE):
         """These are the parameters that work for Imagenet data.
@@ -87,23 +87,22 @@ def _get_block_sizes(resnet_size):
         raise ValueError(err)
 
 
-def _view_pooling(view_features, name):
+def view_pooling(view_features, name):
     vp = tf.expand_dims(view_features[0], 0) # eg. [100] -> [1, 100]
     for v in view_features[1:]:
         v = tf.expand_dims(v, 0)
         vp = tf.concat([vp, v], 0)
     # print('vp before reducing:', vp.get_shape().as_list())
-    vp = tf.reduce_max(vp, [0], name=name)
+    vp = tf.reduce_max(vp, axis=[0], name=name)
 
     return vp
 
 
 def mvcnn(inputs,
           num_classes,
-          # dropout_keep_prob=0.8,
           is_training=True,
+          keep_prob=0.8,
           reuse=tf.AUTO_REUSE,
-          attention_module=None,
           scope='mvcnn'):
     '''
     :param inputs: N x V x H x W x C tensor
@@ -125,16 +124,14 @@ def mvcnn(inputs,
             view_pool.append(net)
 
         # max pooling
-        net = _view_pooling(view_pool, 'view_pooling')
-        net = tf.reduce_mean(net, [1, 2], keepdims=True)
-        net = tf.identity(net, 'final_reduce_mean')
-
-        # ?, 1, 1, 512
-        net = tf.squeeze(net, [1, 2])
-        # ?, 512
-        net = tf.layers.dense(inputs=net, units=num_classes)
-        # ?, 7(n_classes)
-        logits = tf.identity(net, 'final_dense')
+        net = view_pooling(view_pool, 'view_pooling')
+        # (?,7,7,512)
+        net = tf.reduce_mean(net, [1, 2], keepdims=True, name='global_average_pooling')
+        # (?,1,1,512)
+        net = slim.dropout(net, keep_prob, is_training=is_training, scope='dropout')
+        net = slim.flatten(net, scope='pre_logits_flatten')
+        # (?,512)
+        logits = slim.fully_connected(net, num_classes, activation_fn=None, scope='logits')
 
     return logits, net
 
