@@ -34,11 +34,11 @@ flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels',
-                    'airplane,bed,bookshelf,cone,person,toilet,vase',
+                    'airplane,bed,bookshelf,toilet,vase',
                     'number of classes')
 
 # temporary constant
-MODELNET_EVAL_DATA_SIZE = 540
+MODELNET_EVAL_DATA_SIZE = 150
 
 
 def main(unused_argv):
@@ -50,10 +50,10 @@ def main(unused_argv):
     # Define the model
     X = tf.placeholder(tf.float32,
                        [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3],
-                       name='inputs')
+                       name='X')
     ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
 
-    logits = mvcnn.mvcnn(X, num_classes, is_training=False)
+    logits, _ = mvcnn.mvcnn(X, num_classes, is_training=False)
 
     # prediction = tf.nn.softmax(logits)
     # predicted_labels = tf.argmax(prediction, 1)
@@ -68,8 +68,10 @@ def main(unused_argv):
     # Prepare data
     ################
     filenames = tf.placeholder(tf.string, shape=[])
-    eval_dataset = data.Dataset(filenames, FLAGS.height, FLAGS.width,
-                                     batch_size=FLAGS.batch_size)
+    eval_dataset = data.Dataset(filenames,
+                                FLAGS.height,
+                                FLAGS.width,
+                                FLAGS.batch_size)
     iterator = eval_dataset.dataset.make_initializable_iterator()
     next_batch = iterator.get_next()
 
@@ -94,7 +96,7 @@ def main(unused_argv):
             batches += 1
 
         ##################################################
-        # prediction & make results into csv file.
+        # prediction
         ##################################################
         start_time = datetime.datetime.now()
         tf.logging.info("Start prediction: %s" % start_time)

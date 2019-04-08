@@ -84,7 +84,7 @@ flags.DEFINE_string('labels',
 
 # temporary constant
 MODELNET_TRAIN_DATA_SIZE = 2525
-MODELNET_VALIDATE_DATA_SIZE = 350
+MODELNET_VALIDATE_DATA_SIZE = 500
 
 
 def main(unused_argv):
@@ -142,6 +142,9 @@ def main(unused_argv):
         total_loss = tf.check_numerics(total_loss, 'Loss is inf or nan')
         summaries.add(tf.summary.scalar('total_loss', total_loss))
 
+        # TensorBoard: How to plot histogram for gradients
+        grad_summ_op = tf.summary.merge([tf.summary.histogram("%s-grad" % g[1].name, g[0]) for g in grads_and_vars])
+
         # Create gradient update op.
         grad_updates = optimizer.apply_gradients(grads_and_vars,
                                                  global_step=global_step)
@@ -157,16 +160,17 @@ def main(unused_argv):
         # Merge all summaries together.
         summary_op = tf.summary.merge(list(summaries))
         train_writer = tf.summary.FileWriter(FLAGS.summaries_dir, graph)
+        validation_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/validation', graph)
 
         #####################
         # prepare data
         #####################
         tfrecord_names = tf.placeholder(tf.string, shape=[])
-        training_dataset = data.Dataset(tfrecord_names,
-                                        FLAGS.height,
-                                        FLAGS.width,
-                                        FLAGS.batch_size)
-        iterator = training_dataset.dataset.make_initializable_iterator()
+        _dataset = data.Dataset(tfrecord_names,
+                                FLAGS.height,
+                                FLAGS.width,
+                                FLAGS.batch_size)
+        iterator = _dataset.dataset.make_initializable_iterator()
         next_batch = iterator.get_next()
 
         sess_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
@@ -178,13 +182,17 @@ def main(unused_argv):
                 train_utils.restore_fn(FLAGS)
 
             start_epoch = 0
-            batches = int(MODELNET_TRAIN_DATA_SIZE / FLAGS.batch_size)
+            training_batches = int(MODELNET_TRAIN_DATA_SIZE / FLAGS.batch_size)
             if MODELNET_TRAIN_DATA_SIZE % FLAGS.batch_size > 0:
-                batches += 1
+                training_batches += 1
+            val_batches = int(MODELNET_VALIDATE_DATA_SIZE / FLAGS.batch_size)
+            if MODELNET_VALIDATE_DATA_SIZE % FLAGS.batch_size > 0:
+                val_batches += 1
 
             # The filenames argument to the TFRecordDataset initializer can either
             # be a string, a list of strings, or a tf.Tensor of strings.
-            tf_filenames = os.path.join(FLAGS.dataset_dir, 'train.record')
+            training_tf_filenames = os.path.join(FLAGS.dataset_dir, 'train.record')
+            val_tf_filenames = os.path.join(FLAGS.dataset_dir, 'validate.record')
             ##################
             # Training loop.
             ##################
@@ -193,8 +201,8 @@ def main(unused_argv):
                 tf.logging.info(' Epoch %d' % n_epoch)
                 tf.logging.info('--------------------------')
 
-                sess.run(iterator.initializer, feed_dict={tfrecord_names: tf_filenames})
-                for step in range(batches):
+                sess.run(iterator.initializer, feed_dict={tfrecord_names: training_tf_filenames})
+                for step in range(training_batches):
                     train_batch_xs, train_batch_ys = sess.run(next_batch)
                     # # Verify image
                     # assert not np.any(np.isnan(train_batch_xs))
@@ -212,8 +220,8 @@ def main(unused_argv):
                     #         cv2.waitKey(100)
                     #         cv2.destroyAllWindows()
 
-                    train_summary, train_accuracy, train_loss, _ = \
-                        sess.run([summary_op, accuracy, total_loss, train_op],
+                    train_summary, train_accuracy, train_loss, grad_vals, _ = \
+                        sess.run([summary_op, accuracy, total_loss, grad_summ_op, train_op],
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
                                    learning_rate: FLAGS.learning_rate,
@@ -221,12 +229,47 @@ def main(unused_argv):
                                    dropout_keep_prob: 0.8})
 
                     train_writer.add_summary(train_summary, n_epoch)
+                    train_writer.add_summary(grad_vals, n_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
                                     (n_epoch, step, FLAGS.learning_rate, train_accuracy * 100, train_loss))
 
                 ###################################################
-                # TODO: Validate the model on the validation set
+                # Validate the model on the validation set
                 ###################################################
+                tf.logging.info('--------------------------')
+                tf.logging.info(' Start validation ')
+                tf.logging.info('--------------------------')
+
+                # Reinitialize iterator with the validation dataset
+                sess.run(iterator.initializer, feed_dict={tfrecord_names: val_tf_filenames})
+                total_val_accuracy = 0
+                validation_count = 0
+                total_conf_matrix = None
+
+                for step in range(val_batches):
+                    validation_batch_xs, validation_batch_ys = sess.run(next_batch)
+
+                    val_summary, val_accuracy, conf_matrix = \
+                        sess.run([summary_op, accuracy, confusion_matrix],
+                                 feed_dict={X: validation_batch_xs,
+                                            ground_truth: validation_batch_ys,
+                                            is_training: False,
+                                            dropout_keep_prob: 1.0})
+
+                    validation_writer.add_summary(val_summary, n_epoch)
+
+                    total_val_accuracy += val_accuracy
+                    validation_count += 1
+                    if total_conf_matrix is None:
+                        total_conf_matrix = conf_matrix
+                    else:
+                        total_conf_matrix += conf_matrix
+
+
+                total_val_accuracy /= validation_count
+                tf.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
+                tf.logging.info('Validation accuracy = %.1f%% (N=%d)' %
+                                (total_val_accuracy * 100, MODELNET_VALIDATE_DATA_SIZE))
 
                 # Save the model checkpoint periodically.
                 if (n_epoch <= FLAGS.how_many_training_epochs-1):
