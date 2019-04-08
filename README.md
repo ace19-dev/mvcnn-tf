@@ -19,3 +19,4 @@
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
+- https://github.com/nwojke/cosine_metric_learning

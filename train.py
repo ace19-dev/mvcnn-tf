@@ -36,9 +36,23 @@ flags.DEFINE_boolean('save_summaries_images', False,
 flags.DEFINE_string('summaries_dir', './models/train_logs',
                      'Where to save summary logs for TensorBoard.')
 
-flags.DEFINE_float('learning_rate', .0001,
-                   'The learning rate for model training.')
+flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
+                  'Learning rate policy for training.')
+flags.DEFINE_float('base_learning_rate', .0002,
+                   'The base learning rate for model training.')
+flags.DEFINE_float('learning_rate_decay_factor', 1e-3,
+                   'The rate to decay the base learning rate.')
+flags.DEFINE_float('learning_rate_decay_step', .2000,
+                   'Decay the base learning rate at a fixed step.')
+flags.DEFINE_float('learning_power', 0.9,
+                   'The power value used in the poly learning policy.')
+flags.DEFINE_float('training_number_of_steps', 300000,
+                   'The number of steps used for training.')
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
+flags.DEFINE_integer('slow_start_step', 1000,
+                     'Training model with small learning rate for few steps.')
+flags.DEFINE_float('slow_start_learning_rate', 1e-5,
+                   'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
@@ -68,13 +82,12 @@ flags.DEFINE_boolean('ignore_missing_vars',
                      'When restoring a checkpoint would ignore missing variables.')
 
 flags.DEFINE_string('dataset_dir',
-                    # '/home/ace19/dl_data/kgc',
-                    '/home/ace19/dl_data/modelnet', # temporary source path
+                    '/home/ace19/dl_data/modelnet',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 100,
+flags.DEFINE_integer('how_many_training_epochs', 50,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 8, 'batch size')
+flags.DEFINE_integer('batch_size', 10, 'batch size')
 flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
@@ -103,9 +116,9 @@ def main(unused_argv):
                            [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3],
                            name='X')
         ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
-        is_training = tf.placeholder(tf.bool)
-        dropout_keep_prob = tf.placeholder(tf.float32)
-        learning_rate = tf.placeholder(tf.float32)
+        is_training = tf.placeholder(tf.bool, name='is_training')
+        dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
+        # learning_rate = tf.placeholder(tf.float32, name='lr')
 
         # TODO - Use feature for retrieval
         logits, feature = mvcnn.mvcnn(X, num_classes)
@@ -135,7 +148,13 @@ def main(unused_argv):
         for loss in tf.get_collection(tf.GraphKeys.LOSSES):
             summaries.add(tf.summary.scalar('losses/%s' % loss.op.name, loss))
 
-        optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
+        learning_rate = train_utils.get_model_learning_rate(
+            FLAGS.learning_policy, FLAGS.base_learning_rate,
+            FLAGS.learning_rate_decay_step, FLAGS.learning_rate_decay_factor,
+            FLAGS.training_number_of_steps, FLAGS.learning_power,
+            FLAGS.slow_start_step, FLAGS.slow_start_learning_rate)
+        # optimizer = tf.train.MomentumOptimizer(learning_rate, FLAGS.momentum)
+        optimizer = tf.train.AdamOptimizer(learning_rate)
         summaries.add(tf.summary.scalar('learning_rate', learning_rate))
 
         total_loss, grads_and_vars = train_utils.optimize(optimizer)
@@ -167,6 +186,7 @@ def main(unused_argv):
         #####################
         tfrecord_names = tf.placeholder(tf.string, shape=[])
         _dataset = data.Dataset(tfrecord_names,
+                                FLAGS.num_views,
                                 FLAGS.height,
                                 FLAGS.width,
                                 FLAGS.batch_size)
@@ -220,18 +240,17 @@ def main(unused_argv):
                     #         cv2.waitKey(100)
                     #         cv2.destroyAllWindows()
 
-                    train_summary, train_accuracy, train_loss, grad_vals, _ = \
-                        sess.run([summary_op, accuracy, total_loss, grad_summ_op, train_op],
+                    lr, train_summary, train_accuracy, train_loss, grad_vals, _ = \
+                        sess.run([learning_rate, summary_op, accuracy, total_loss, grad_summ_op, train_op],
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
-                                   learning_rate: FLAGS.learning_rate,
                                    is_training: True,
                                    dropout_keep_prob: 0.8})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     train_writer.add_summary(grad_vals, n_epoch)
                     tf.logging.info('Epoch #%d, Step #%d, rate %.10f, accuracy %.1f%%, loss %f' %
-                                    (n_epoch, step, FLAGS.learning_rate, train_accuracy * 100, train_loss))
+                                    (n_epoch, step, lr, train_accuracy * 100, train_loss))
 
                 ###################################################
                 # Validate the model on the validation set
@@ -242,10 +261,10 @@ def main(unused_argv):
 
                 # Reinitialize iterator with the validation dataset
                 sess.run(iterator.initializer, feed_dict={tfrecord_names: val_tf_filenames})
+
                 total_val_accuracy = 0
                 validation_count = 0
                 total_conf_matrix = None
-
                 for step in range(val_batches):
                     validation_batch_xs, validation_batch_ys = sess.run(next_batch)
 
