@@ -51,7 +51,7 @@ flags.DEFINE_float('training_number_of_steps', 300000,
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
 flags.DEFINE_integer('slow_start_step', 1000,
                      'Training model with small learning rate for few steps.')
-flags.DEFINE_float('slow_start_learning_rate', 1e-5,
+flags.DEFINE_float('slow_start_learning_rate', 1e-4,
                    'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
