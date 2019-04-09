@@ -229,7 +229,10 @@ def mvcnn(inputs,
                                    scope='fc1')
 
         features = net
+
         # Features in rows, normalize axis 1.
+        # The final l2 normalization projects features onto the unit hypersphere
+        # for application of the cosine softmax classifier.
         features = tf.nn.l2_normalize(features, dim=1)
 
         with tf.variable_scope("hypersphere", reuse=reuse):
@@ -238,6 +241,8 @@ def mvcnn(inputs,
                                     (feature_dim, int(num_classes)),
                                     initializer=tf.truncated_normal_initializer(stddev=1e-3),
                                     regularizer=None)
+            # The scaling parameter κ controls
+            # the shape of the conditional class probabilities
             scale = \
                 slim.model_variable("scale",
                                     (),
