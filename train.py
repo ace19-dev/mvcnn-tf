@@ -253,7 +253,7 @@ def main(unused_argv):
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
                                    is_training: True,
-                                   dropout_keep_prob: 0.8})
+                                   dropout_keep_prob: 0.6})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     train_writer.add_summary(grad_vals, n_epoch)
