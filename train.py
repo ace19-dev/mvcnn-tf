@@ -120,10 +120,12 @@ def main(unused_argv):
         dropout_keep_prob = tf.placeholder(tf.float32, name='dropout_keep_prob')
         # learning_rate = tf.placeholder(tf.float32, name='lr')
 
-        # TODO - Use feature for retrieval
-        logits, feature = mvcnn.mvcnn(X, num_classes)
+        # metric learning
+        logits, features = mvcnn.mvcnn(X, num_classes)
 
-        tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
+        # tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
+        cross_entropy = slim.losses.sparse_softmax_cross_entropy(logits, ground_truth)
+        tf.summary.scalar("cross_entropy_loss", cross_entropy)
 
         # Gather update ops. These contain, for example, the updates for the
         # batch_norm variables created by model.
@@ -137,8 +139,11 @@ def main(unused_argv):
         confusion_matrix = tf.confusion_matrix(ground_truth,
                                                predition,
                                                num_classes=num_classes)
-        accuracy = tf.reduce_mean(tf.cast(correct_predition, tf.float32))
-        summaries.add(tf.summary.scalar('accuracy', accuracy))
+        # accuracy = tf.reduce_mean(tf.cast(correct_predition, tf.float32))
+        # summaries.add(tf.summary.scalar('accuracy', accuracy))
+        accuracy_var = slim.metrics.accuracy(tf.cast(predition, tf.int64), 
+                                             ground_truth)
+        tf.summary.scalar("classification accuracy", accuracy_var)
 
         # Add summaries for model variables.
         for model_var in slim.get_model_variables():
