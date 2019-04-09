@@ -8,6 +8,7 @@ import numpy as np
 
 from utils import train_utils
 import mvcnn
+import mvcnn_deep_cosine_metric_learning
 import data
 
 
@@ -121,7 +122,9 @@ def main(unused_argv):
         # learning_rate = tf.placeholder(tf.float32, name='lr')
 
         # metric learning
-        logits, features = mvcnn.mvcnn(X, num_classes)
+        logits, features = mvcnn_deep_cosine_metric_learning.mvcnn(X, num_classes)
+        # logits, features = mvcnn.mvcnn(X, num_classes)
+
 
         # tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
         cross_entropy = slim.losses.sparse_softmax_cross_entropy(logits, ground_truth)

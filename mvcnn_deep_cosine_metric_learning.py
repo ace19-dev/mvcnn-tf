@@ -188,7 +188,7 @@ def view_pooling(view_features, name):
 def mvcnn(inputs,
           num_classes,
           is_training=True,
-          keep_prob=0.8,
+          keep_prob=0.7,
           reuse=tf.AUTO_REUSE,
           scope='mvcnn'):
     '''
