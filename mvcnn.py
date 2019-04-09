@@ -133,7 +133,7 @@ def mvcnn(inputs,
         # (?,512)
         logits = slim.fully_connected(net, num_classes, activation_fn=None, scope='logits')
 
-    return logits, net
+    return logits, net  # net - use it for retrieval.
 
 
 

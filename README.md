@@ -14,9 +14,13 @@
 ## TODO
 - retrieve module: metric learning
     - Euclidean distance
-    - low-rank Mahalanobis metric
-    - cosine metric
+    - deep cosine metric learning
+    
+## Notice
+- The network architecture used in our experiments is relatively shallow to 
+allow for fast training and inference.
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
+- https://github.com/ace19-dev/models/tree/master/official/resnet
 - https://github.com/nwojke/cosine_metric_learning

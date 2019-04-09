@@ -38,7 +38,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0002,
+flags.DEFINE_float('base_learning_rate', .0001,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-3,
                    'The rate to decay the base learning rate.')
@@ -51,7 +51,7 @@ flags.DEFINE_float('training_number_of_steps', 300000,
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
 flags.DEFINE_integer('slow_start_step', 1000,
                      'Training model with small learning rate for few steps.')
-flags.DEFINE_float('slow_start_learning_rate', 1e-4,
+flags.DEFINE_float('slow_start_learning_rate', 1e-5,
                    'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
@@ -97,7 +97,7 @@ flags.DEFINE_string('labels',
 
 # temporary constant
 MODELNET_TRAIN_DATA_SIZE = 2525
-MODELNET_VALIDATE_DATA_SIZE = 500
+MODELNET_VALIDATE_DATA_SIZE = 350
 
 
 def main(unused_argv):
