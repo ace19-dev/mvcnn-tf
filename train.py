@@ -8,7 +8,6 @@ import numpy as np
 
 from utils import train_utils
 import mvcnn
-import mvcnn_deep_cosine_metric_learning
 import data
 
 
@@ -122,7 +121,7 @@ def main(unused_argv):
         # learning_rate = tf.placeholder(tf.float32, name='lr')
 
         # metric learning
-        logits, features = mvcnn_deep_cosine_metric_learning.mvcnn(X, num_classes)
+        logits, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X, num_classes)
         # logits, features = mvcnn.mvcnn(X, num_classes)
 
 
@@ -253,7 +252,7 @@ def main(unused_argv):
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
                                    is_training: True,
-                                   dropout_keep_prob: 0.6})
+                                   dropout_keep_prob: 0.8})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     train_writer.add_summary(grad_vals, n_epoch)
