@@ -85,7 +85,7 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/modelnet',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 50,
+flags.DEFINE_integer('how_many_training_epochs', 70,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 10, 'batch size')
 flags.DEFINE_integer('num_views', 8, 'number of views')
@@ -121,9 +121,8 @@ def main(unused_argv):
         # learning_rate = tf.placeholder(tf.float32, name='lr')
 
         # metric learning
-        logits, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X, num_classes)
+        logits, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X, num_classes, keep_prob=0.8)
         # logits, features = mvcnn.mvcnn(X, num_classes)
-
 
         # tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
         cross_entropy = slim.losses.sparse_softmax_cross_entropy(logits, ground_truth)
