@@ -144,7 +144,7 @@ def main(unused_argv):
         # summaries.add(tf.summary.scalar('accuracy', accuracy))
         accuracy = slim.metrics.accuracy(tf.cast(predition, tf.int64),
                                              ground_truth)
-        tf.summary.scalar("classification accuracy", accuracy)
+        tf.summary.scalar("accuracy", accuracy)
 
         # Add summaries for model variables.
         for model_var in slim.get_model_variables():
