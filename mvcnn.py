@@ -128,8 +128,8 @@ def mvcnn(inputs,
         # (?,7,7,512)
         net = tf.reduce_mean(net, [1, 2], keepdims=True, name='global_average_pooling')
         # (?,1,1,512)
-        net = slim.dropout(net, keep_prob, is_training=is_training, scope='dropout')
         net = slim.flatten(net, scope='pre_logits_flatten')
+        net = slim.dropout(net, keep_prob, is_training=is_training, scope='dropout')
         # (?,512)
         logits = slim.fully_connected(net, num_classes, activation_fn=None, scope='logits')
 

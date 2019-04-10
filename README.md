@@ -12,9 +12,9 @@
 - eval.py
 
 ## TODO
-- retrieve module: metric learning
+- retrieve module: nearest neighbor queries
     - Euclidean distance
-    - deep cosine metric learning
+    - deep cosine metric learning: learn a feature representation
     
 ## Notice
 - The network architecture used in our experiments is relatively shallow to 

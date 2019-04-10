@@ -188,7 +188,7 @@ def view_pooling(view_features, name):
 def mvcnn(inputs,
           num_classes,
           is_training=True,
-          keep_prob=0.7,
+          keep_prob=0.6,
           reuse=tf.AUTO_REUSE,
           scope='mvcnn'):
     '''
@@ -221,9 +221,9 @@ def mvcnn(inputs,
         # (?,7,7,512)
         feature_dim = net.get_shape().as_list()[-1]
         net = slim.flatten(net)
-
         net = slim.dropout(net, keep_prob=keep_prob)
-        net = slim.fully_connected(net, feature_dim,
+        net = slim.fully_connected(net,
+                                   feature_dim,
                                    normalizer_fn=slim.batch_norm,
                                    weights_regularizer=fc_regularizer,
                                    scope='fc1')
@@ -231,17 +231,24 @@ def mvcnn(inputs,
         features = net
 
         # Features in rows, normalize axis 1.
+        # The final l2 normalization projects features onto the unit hypersphere
+        # for application of the cosine softmax classifier.
         features = tf.nn.l2_normalize(features, dim=1)
 
-        with slim.variable_scope.variable_scope("ball", reuse=reuse):
-            weights = slim.model_variable(
-                "mean_vectors", (feature_dim, int(num_classes)),
-                initializer=tf.truncated_normal_initializer(stddev=1e-3),
-                regularizer=None)
-            scale = slim.model_variable(
-                "scale", (), tf.float32,
-                initializer=tf.constant_initializer(0., tf.float32),
-                regularizer=slim.l2_regularizer(1e-1))
+        with tf.variable_scope("hypersphere", reuse=reuse):
+            weights = \
+                slim.model_variable("mean_vectors",
+                                    (feature_dim, int(num_classes)),
+                                    initializer=tf.truncated_normal_initializer(stddev=1e-3),
+                                    regularizer=None)
+            # The scaling parameter κ controls
+            # the shape of the conditional class probabilities
+            scale = \
+                slim.model_variable("scale",
+                                    (),
+                                    tf.float32,
+                                    initializer=tf.constant_initializer(0., tf.float32),
+                                    regularizer=slim.l2_regularizer(1e-1))
 
             tf.summary.scalar("scale", scale)
             scale = tf.nn.softplus(scale)
