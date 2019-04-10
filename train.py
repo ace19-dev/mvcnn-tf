@@ -49,7 +49,7 @@ flags.DEFINE_float('learning_power', 0.9,
 flags.DEFINE_float('training_number_of_steps', 300000,
                    'The number of steps used for training.')
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
-flags.DEFINE_integer('slow_start_step', 1000,
+flags.DEFINE_integer('slow_start_step', 510,
                      'Training model with small learning rate for few steps.')
 flags.DEFINE_float('slow_start_learning_rate', 1e-5,
                    'Learning rate employed during slow start.')
@@ -97,7 +97,7 @@ flags.DEFINE_string('labels',
 
 # temporary constant
 MODELNET_TRAIN_DATA_SIZE = 2525
-MODELNET_VALIDATE_DATA_SIZE = 350
+MODELNET_VALIDATE_DATA_SIZE = 475
 
 
 def main(unused_argv):
@@ -124,8 +124,7 @@ def main(unused_argv):
         logits, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X, num_classes, keep_prob=0.8)
         # logits, features = mvcnn.mvcnn(X, num_classes)
 
-        # tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
-        cross_entropy = slim.losses.sparse_softmax_cross_entropy(logits, ground_truth)
+        cross_entropy = tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
         tf.summary.scalar("cross_entropy_loss", cross_entropy)
 
         # Gather update ops. These contain, for example, the updates for the

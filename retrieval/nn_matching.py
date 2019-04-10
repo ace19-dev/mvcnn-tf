@@ -153,6 +153,7 @@ class NearestNeighborDistanceMetric(object):
                 self.samples[target] = self.samples[target][-self.budget:]
         self.samples = {k: self.samples[k] for k in active_targets}
 
+    # use func for image retrieval
     def distance(self, features, targets):
         """Compute distance between features and targets.
 

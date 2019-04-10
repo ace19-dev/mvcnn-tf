@@ -271,7 +271,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
         # Features in rows, normalize axis 1.
         # The final l2 normalization projects features onto the unit hypersphere
         # for application of the cosine softmax classifier.
-        features = tf.nn.l2_normalize(features, dim=1)
+        features = tf.nn.l2_normalize(features, axis=1)
 
         with tf.variable_scope("hypersphere", reuse=reuse):
             weights = \
@@ -292,7 +292,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
             scale = tf.nn.softplus(scale)
 
         # Mean vectors in colums, normalize axis 0.
-        weights_normed = tf.nn.l2_normalize(weights, dim=0)
+        weights_normed = tf.nn.l2_normalize(weights, axis=0)
         logits = scale * tf.matmul(features, weights_normed)
 
     return logits, features  # use it for retrieval.

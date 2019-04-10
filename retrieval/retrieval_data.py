@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+import random
+
 
 class Dataset(object):
     """
@@ -76,8 +78,19 @@ class Dataset(object):
         # here.  Since we are not applying any distortions in this
         # example, and the next step expects the image to be flattened
         # into a vector, we don't bother.
+        img_lst = []
+        img_tensor_lst = tf.unstack(images)
+        for i, image in enumerate(img_tensor_lst):
+            image = tf.image.central_crop(image, 0.9)
+            image = tf.image.random_flip_up_down(image)
+            image = tf.image.random_flip_left_right(image)
+            image = tf.image.rot90(image, k=random.randint(0, 4))
+            paddings = tf.constant([[11, 11], [11, 11], [0, 0]])  # 224
+            image = tf.pad(image, paddings, "CONSTANT")
 
-        return images, filenames
+            img_lst.append(image)
+
+        return img_lst, filenames
 
 
     def normalize(self, images, filenames):
