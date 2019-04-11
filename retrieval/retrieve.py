@@ -46,7 +46,7 @@ flags.DEFINE_string('checkpoint_path',
                     '../models',
                     'Directory where to read training checkpoints.')
 
-flags.DEFINE_integer('batch_size', 10, 'batch size')
+flags.DEFINE_integer('batch_size', 8, 'batch size')
 flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
@@ -62,8 +62,8 @@ flags.DEFINE_string('nn_budget', None,
                     'If None, no budget is enforced.')
 
 
-MODELNET_RETRIEVAL_SRC_DATA_SIZE = 450
-MODELNET_RETRIEVAL_RETRIEVAL_DATA_SIZE = 50
+MODELNET_GALLERY_SIZE = 2525
+MODELNET_QUERY_SIZE = 25
 
 
 # TODO
@@ -77,41 +77,21 @@ def get_top5(cost_matrix):
 
 
 # TODO
-def match(metric, retrieval, sources):
-    def gated_metric(tracks, dets, track_indices, detection_indices):
-        features = np.array([dets[i].feature for i in detection_indices])
-        targets = np.array([tracks[i].track_id for i in track_indices])
-        cost_matrix = metric.distance(features, targets)
-        # cost_matrix = linear_assignment.gate_cost_matrix(
-        #     self.kf, cost_matrix, tracks, dets, track_indices,
-        #     detection_indices)
+def match(metric, galleries, queries, gallery_paths, query_paths):
+
+    # TODO:
+    def gated_metric(galleries, queries, gallery_indices, query_indices):
+        # Compute distance between features and targets.
+        cost_matrix = metric.distance(galleries, queries)
 
         return cost_matrix
 
-    # # Split track set into confirmed and unconfirmed tracks.
-    # confirmed_tracks = [
-    #     i for i, t in enumerate(self.tracks) if t.is_confirmed()]
-    # unconfirmed_tracks = [
-    #     i for i, t in enumerate(self.tracks) if not t.is_confirmed()]
-
     # Associate targets using appearance features.
-    matches_a, unmatched_tracks_a, unmatched_detections = \
+    matches_a, _, unmatched_queries = \
         linear_assignment.matching_cascade(gated_metric,
                                            metric.matching_threshold,
-                                           retrieval,
-                                           sources)
-
-    # # Associate remaining tracks together with unconfirmed tracks using IOU.
-    # iou_track_candidates = unconfirmed_tracks + [
-    #     k for k in unmatched_tracks_a if
-    #     self.tracks[k].time_since_update == 1]
-    # unmatched_tracks_a = [
-    #     k for k in unmatched_tracks_a if
-    #     self.tracks[k].time_since_update != 1]
-    # matches_b, unmatched_tracks_b, unmatched_detections = \
-    #     linear_assignment.min_cost_matching(
-    #         iou_matching.iou_cost, self.max_iou_distance, self.tracks,
-    #         detections, iou_track_candidates, unmatched_detections)
+                                           galleries,
+                                           queries)
 
     matches = matches_a # + matches_b
     # unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))
@@ -128,13 +108,13 @@ def main(unused_argv):
     X = tf.placeholder(tf.float32,
                        [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3],
                        name='X')
-    _, features = \
-        mvcnn.mvcnn_with_deep_cosine_metric_learning(X,
-                                                      num_classes,
-                                                      is_training=False,
-                                                      keep_prob=1.0)
 
-    # Prepare retrieval source data
+    _, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X,
+                                                               num_classes,
+                                                               is_training=False,
+                                                               keep_prob=1.0)
+
+    # Prepare query source data
     tfrecord_filenames = tf.placeholder(tf.string, shape=[])
     _dataset = retrieval_data.Dataset(tfrecord_filenames,
                                       FLAGS.num_views,
@@ -156,27 +136,29 @@ def main(unused_argv):
             checkpoint_path = FLAGS.checkpoint_path
         saver.restore(sess, checkpoint_path)
 
-        global_step = checkpoint_path.split('/')[-1].split('-')[-1]
+        # global_step = checkpoint_path.split('/')[-1].split('-')[-1]
 
         # Get the number of training/validation steps per epoch
-        batches = int(MODELNET_RETRIEVAL_SRC_DATA_SIZE / FLAGS.batch_size)
-        if MODELNET_RETRIEVAL_SRC_DATA_SIZE % FLAGS.batch_size > 0:
-            batches += 1
-        batches2 = int(MODELNET_RETRIEVAL_RETRIEVAL_DATA_SIZE / FLAGS.batch_size)
-        if MODELNET_RETRIEVAL_RETRIEVAL_DATA_SIZE % FLAGS.batch_size > 0:
-            batches2 += 1
+        batches_gallery = int(MODELNET_GALLERY_SIZE / FLAGS.batch_size)
+        if MODELNET_GALLERY_SIZE % FLAGS.batch_size > 0:
+            batches_gallery += 1
+        batches_query = int(MODELNET_QUERY_SIZE / FLAGS.batch_size)
+        if MODELNET_QUERY_SIZE % FLAGS.batch_size > 0:
+            batches_query += 1
 
-        source_filenames = os.path.join(FLAGS.dataset_dir, 'source.record')
-        retrieval_filenames = os.path.join(FLAGS.dataset_dir, 'retrieval.record')
+        gallery_tf_filenames = os.path.join(FLAGS.dataset_dir, 'gallery.record')
+        query_tf_filenames = os.path.join(FLAGS.dataset_dir, 'query.record')
 
-        source_features_list = []
-        sess.run(iterator.initializer, feed_dict={tfrecord_filenames: source_filenames})
-        for i in range(batches):
-            batch_xs, image_paths = sess.run(next_batch)
+        # gallery images
+        gallery_features_list = []
+        gallery_path_list = []
+        sess.run(iterator.initializer, feed_dict={tfrecord_filenames: gallery_tf_filenames})
+        for i in range(batches_gallery):
+            gallery_batch_xs, gallery_paths = sess.run(next_batch)
             # # Verify image
-            # n_batch = batch_xs.shape[0]
+            # n_batch = gallery_batch_xs.shape[0]
             # for i in range(n_batch):
-            #     img = batch_xs[i]
+            #     img = gallery_batch_xs[i]
             #     # scipy.misc.toimage(img).show()
             #     # Or
             #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
@@ -186,20 +168,20 @@ def main(unused_argv):
             #     cv2.destroyAllWindows()
 
             # (10,512)
-            _f = sess.run([features], feed_dict={X: batch_xs})
-            source_features_list.extend(_f)
+            _f = sess.run([features], feed_dict={X: gallery_batch_xs})
+            gallery_features_list.extend(_f)
+            gallery_path_list.extend(gallery_paths)
 
-        # tf.logging.info("size %d" % len(features_repo))
-
-        # get retrieval features
-        retrieval_features_list = []
-        sess.run(iterator.initializer, feed_dict={tfrecord_filenames: retrieval_filenames})
-        for i in range(batches2):
-            batch_xs, image_paths = sess.run(next_batch)
+        # query images
+        query_features_list = []
+        query_path_list = []
+        sess.run(iterator.initializer, feed_dict={tfrecord_filenames: query_tf_filenames})
+        for i in range(batches_query):
+            query_batch_xs, query_paths = sess.run(next_batch)
             # # Verify image
-            # n_batch = batch_xs.shape[0]
+            # n_batch = query_batch_xs.shape[0]
             # for i in range(n_batch):
-            #     img = batch_xs[i]
+            #     img = query_batch_xs[i]
             #     # scipy.misc.toimage(img).show()
             #     # Or
             #     img = cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_BGR2RGB)
@@ -209,14 +191,16 @@ def main(unused_argv):
             #     cv2.destroyAllWindows()
 
             # (10,512)
-            _f = sess.run([features], feed_dict={X: batch_xs})
-            retrieval_features_list.extend(_f)
+            _f = sess.run([features], feed_dict={X: query_batch_xs})
+            query_features_list.extend(_f)
+            query_path_list.extend(query_paths)
 
-        # The distance metric used for measurement to retrieval.
-        metric = \
-            matching.NearestNeighborDistanceMetric("cosine", FLAGS.max_cosine_distance)
+        # The distance metric used for measurement to query.
+        metric = matching.NearestNeighborDistanceMetric("cosine", FLAGS.max_cosine_distance)
         # TODO:
-        cost_matrix = match(metric, retrieval_features_list, source_features_list)
+        # Run matching cascade.
+        cost_matrix = match(metric, gallery_features_list, query_features_list,
+                            gallery_path_list, query_path_list)
         top5 = get_top5(cost_matrix)
 
         # display top 5 image correspond to target
