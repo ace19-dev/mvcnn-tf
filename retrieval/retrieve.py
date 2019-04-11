@@ -38,7 +38,7 @@ FLAGS = flags.FLAGS
 
 # Dataset settings.
 flags.DEFINE_string('retrieval_src',
-                    '/home/ace19/dl_data/modelnet/retrieval.record',
+                    '/home/ace19/dl_data/modelnet/validate.record',
                     'Where the dataset reside.')
 
 # flags.DEFINE_string('retrieval_target_root',
@@ -58,15 +58,15 @@ flags.DEFINE_string('labels',
                     'number of classes')
 
 
-MODELNET_RETRIEVAL_SRC_DATA_SIZE = 475
+MODELNET_RETRIEVAL_SRC_DATA_SIZE = 350
 
 
-def get_targets():
-    views_dirs = os.listdir(FLAGS.retrieval_target_root)
-
-    for dir in views_dirs:
-        views_path = os.path.join(FLAGS.retrieval_target_root, dir)
-        views = os.listdir(views_path)
+# def get_targets():
+#     views_dirs = os.listdir(FLAGS.retrieval_target_root)
+#
+#     for dir in views_dirs:
+#         views_path = os.path.join(FLAGS.retrieval_target_root, dir)
+#         views = os.listdir(views_path)
 
 
 def main(unused_argv):
@@ -88,9 +88,10 @@ def main(unused_argv):
     # Prepare retrieval source data
     filenames = tf.placeholder(tf.string, shape=[])
     _dataset = retrieval_data.Dataset(filenames,
-                                        FLAGS.height,
-                                        FLAGS.width,
-                                        FLAGS.batch_size)
+                                      FLAGS.num_views,
+                                      FLAGS.height,
+                                      FLAGS.width,
+                                      FLAGS.batch_size)
     iterator = _dataset.dataset.make_initializable_iterator()
     next_batch = iterator.get_next()
 
@@ -132,8 +133,11 @@ def main(unused_argv):
             #     cv2.waitKey(100)
             #     cv2.destroyAllWindows()
 
+            # (10,512)
             _features = sess.run([features], feed_dict={X: batch_xs})
             features_repo.extend(_features)
+
+        tf.logging.info("size %d" % len(features_repo))
 
         # get retrieval targets
 
