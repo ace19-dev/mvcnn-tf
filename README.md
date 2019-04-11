@@ -15,10 +15,13 @@
 - prepare retrieval sources using by create_modelnet_tf_record.py
 - load retrieval target
 
-## TODO
+## Done
 - retrieve module: nearest neighbor queries
     - Euclidean distance
     - deep cosine metric learning: <U>learn a feature representation</U>
+    
+## TODO
+
     
 ## Notice
 - The network architecture used in our experiments is relatively shallow to 
