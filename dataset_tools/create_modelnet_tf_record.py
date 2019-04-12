@@ -29,7 +29,7 @@ flags.DEFINE_string('output_path',
                     '/home/ace19/dl_data/modelnet/query.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('dataset_category',
-                    'query',
+                    'test',
                     'dataset category, train or test')
 
 FLAGS = flags.FLAGS

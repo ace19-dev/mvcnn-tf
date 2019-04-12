@@ -121,7 +121,10 @@ def main(unused_argv):
         # learning_rate = tf.placeholder(tf.float32, name='lr')
 
         # metric learning
-        logits, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X, num_classes, keep_prob=0.8)
+        logits, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X,
+                                                                        num_classes,
+                                                                        is_training=is_training,
+                                                                        keep_prob=dropout_keep_prob)
         # logits, features = mvcnn.mvcnn(X, num_classes)
 
         cross_entropy = tf.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)
@@ -250,7 +253,7 @@ def main(unused_argv):
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
                                    is_training: True,
-                                   dropout_keep_prob: 0.8})
+                                   dropout_keep_prob: 0.6})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     train_writer.add_summary(grad_vals, n_epoch)
