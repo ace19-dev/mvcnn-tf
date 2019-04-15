@@ -86,11 +86,11 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
     w = 50
     h = 50
     columns = 8
-    rows = 1
+    rows = 2
 
     tf.logging.info('display images -> \n')
-    fig, ax = plt.subplots(nrows=rows, ncols=columns)
-    # fig = plt.figure()
+    # fig, ax = plt.subplots(nrows=rows, ncols=columns)
+    fig = plt.figure(figsize=(50, 50))
 
     top_indi_list = top_indices.tolist()
     for idx, indice in enumerate(top_indi_list):
@@ -98,18 +98,18 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
         for i, path in enumerate(query):
             path = path.decode("utf-8")
             im = cv2.imread(path)
-            im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_LINEAR)
-            fig.add_subplot(rows, columns, i+1)
-            plt.imshow(cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB))
+            # im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_NEAREST)
+            sub = fig.add_subplot(rows, columns, i+1)
+            plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         # plt.show()
 
         gallery = gallery_path_list[indice]
         for i, path2 in enumerate(gallery):
             path2 = path2.decode("utf-8")
             im = cv2.imread(path2)
-            im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_LINEAR)
-            fig.add_subplot(rows, columns, i+1)
-            plt.imshow(cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB))
+            # im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_NEAREST)
+            sub = fig.add_subplot(rows, columns, i+1)
+            plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         plt.show()
         tf.logging.info('step...')
 
