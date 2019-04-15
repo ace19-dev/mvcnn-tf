@@ -80,19 +80,22 @@ def _nn_cosine_distance(x, y):
     Parameters
     ----------
     x : ndarray
-        A matrix of N row-vectors (sample points).
-    y : ndarray
         A matrix of M row-vectors (query points).
+    y : ndarray
+        A matrix of N row-vectors (gallery points).
 
     Returns
     -------
-    ndarray
-        A vector of length M that contains for each entry in `y` the
-        smallest cosine distance to a sample in `x`.
+    # ndarray
+    #     A vector of length M that contains for each entry in `y` the
+    #     smallest cosine distance to a sample in `x`.
 
     """
     distances = _cosine_distance(x, y)
-    return distances.min(axis=0)
+    # TODO:
+    # min_idx = np.argmin(distances, axis=1)
+
+    return distances.min(axis=0)    # (2525,)
 
 
 class NearestNeighborDistanceMetric(object):
@@ -152,26 +155,28 @@ class NearestNeighborDistanceMetric(object):
                 self.samples[target] = self.samples[target][-self.budget:]
         self.samples = {k: self.samples[k] for k in active_targets}
 
-    def distance(self, features, targets):
-        """Compute distance between features and targets.
+    def distance(self, queries, galleries):
+        """Compute distance between galleries and queries.
 
         Parameters
         ----------
-        features : ndarray
+        galleries : ndarray
             An NxM matrix of N features of dimensionality M.
-        targets : List[int]
-            A list of targets to match the given `features` against.
+        queries : ndarray
+            An LxM matrix of L features of dimensionality M to match the given `galleries` against.
 
         Returns
         -------
-        ndarray
-            Returns a cost matrix of shape len(targets), len(features), where
-            element (i, j) contains the closest squared distance between
-            `targets[i]` and `features[j]`.
+        # ndarray
+        #     Returns a cost matrix of shape len(queries), len(galleries), where
+        #     element (i, j) contains the closest squared distance between
+        #     `queries[i]` and `galleries[j]`.
 
         """
-        cost_matrix = np.zeros((len(targets), len(features)))
-        for i, target in enumerate(targets):
-            cost_matrix[i, :] = self._metric(target, features)
+        cost_matrix = np.zeros((len(queries), len(galleries)))
+        # for i, target in enumerate(queries):
+        #     cost_matrix[i, :] = self._metric(target, galleries)
+        min_idx = self._metric(queries, galleries)
 
+        # return min_idx
         return cost_matrix

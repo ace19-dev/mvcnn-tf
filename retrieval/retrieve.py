@@ -83,9 +83,10 @@ def get_top5(cost_matrix):
 def match(metric, galleries, queries, gallery_paths, query_paths):
     max_distance = metric.matching_threshold
 
-    cost_matrix = metric.distance(galleries, queries)
-    cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
-    indices = linear_assignment(cost_matrix)
+    cost_matrix = metric.distance(queries, galleries)
+    # TODO:
+    # cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
+    # indices = linear_assignment(cost_matrix)
 
     # matches, unmatched_tracks, unmatched_detections = [], [], []
     # for col, detection_idx in enumerate(detection_indices):
