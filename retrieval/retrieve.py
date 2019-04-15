@@ -88,7 +88,7 @@ def match(metric, galleries, queries, gallery_paths, query_paths):
     # 1. min 값을 가진 top 3~5 의 index 를 구한다.
     # 2. 위 index 에 해당하는 이미지 이름을 가져와서 그린다.
 
-    
+
     # cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
     # indices = linear_assignment(cost_matrix)
 
