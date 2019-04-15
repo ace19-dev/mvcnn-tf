@@ -92,10 +92,7 @@ def _nn_cosine_distance(x, y):
 
     """
     distances = _cosine_distance(x, y)
-    # TODO:
-    # min_idx = np.argmin(distances, axis=1)
-
-    return distances.min(axis=0)    # (2525,)
+    return distances
 
 
 class NearestNeighborDistanceMetric(object):
@@ -136,47 +133,39 @@ class NearestNeighborDistanceMetric(object):
         self.budget = budget
         self.samples = {}
 
-    def partial_fit(self, features, targets, active_targets):
-        """Update the distance metric with new data.
-
-        Parameters
-        ----------
-        features : ndarray
-            An NxM matrix of N features of dimensionality M.
-        targets : ndarray
-            An integer array of associated target identities.
-        active_targets : List[int]
-            A list of targets that are currently present in the scene.
-
-        """
-        for feature, target in zip(features, targets):
-            self.samples.setdefault(target, []).append(feature)
-            if self.budget is not None:
-                self.samples[target] = self.samples[target][-self.budget:]
-        self.samples = {k: self.samples[k] for k in active_targets}
+    # def partial_fit(self, features, targets, active_targets):
+    #     """Update the distance metric with new data.
+    #
+    #     Parameters
+    #     ----------
+    #     features : ndarray
+    #         An NxM matrix of N features of dimensionality M.
+    #     targets : ndarray
+    #         An integer array of associated target identities.
+    #     active_targets : List[int]
+    #         A list of targets that are currently present in the scene.
+    #
+    #     """
+    #     for feature, target in zip(features, targets):
+    #         self.samples.setdefault(target, []).append(feature)
+    #         if self.budget is not None:
+    #             self.samples[target] = self.samples[target][-self.budget:]
+    #     self.samples = {k: self.samples[k] for k in active_targets}
 
     def distance(self, queries, galleries):
         """Compute distance between galleries and queries.
 
         Parameters
         ----------
-        galleries : ndarray
-            An NxM matrix of N features of dimensionality M.
         queries : ndarray
             An LxM matrix of L features of dimensionality M to match the given `galleries` against.
+        galleries : ndarray
+            An NxM matrix of N features of dimensionality M.
 
         Returns
         -------
-        # ndarray
-        #     Returns a cost matrix of shape len(queries), len(galleries), where
-        #     element (i, j) contains the closest squared distance between
-        #     `queries[i]` and `galleries[j]`.
+        ndarray
+            Returns a cost matrix of shape LxN
 
         """
-        cost_matrix = np.zeros((len(queries), len(galleries)))
-        # for i, target in enumerate(queries):
-        #     cost_matrix[i, :] = self._metric(target, galleries)
-        min_idx = self._metric(queries, galleries)
-
-        # return min_idx
-        return cost_matrix
+        return self._metric(queries, galleries)

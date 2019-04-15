@@ -26,9 +26,10 @@ import os
 import csv
 import numpy as np
 
-import tensorflow as tf
+import cv2
+import matplotlib.pyplot as plt
 
-from sklearn.utils.linear_assignment_ import linear_assignment
+import tensorflow as tf
 
 from retrieval import retrieval_data, matching
 import mvcnn
@@ -66,52 +67,67 @@ flags.DEFINE_string('nn_budget', None,
 
 
 MODELNET_GALLERY_SIZE = 2525
-MODELNET_QUERY_SIZE = 50
+MODELNET_QUERY_SIZE = 25
+
+NUM_TOP = 3
 
 
 # TODO
-def display_retrieval(top5):
-    tf.logging.info('')
+def display_retrieval(top_indices, gallery_path_list, query_path_list):
+    tf.logging.info('write retrieval -> \n')
+    top_indi_list = top_indices.tolist()
+    for idx, indice in enumerate(top_indi_list):
+        query = query_path_list[idx]
+        tf.logging.info('query %d ==> %s ' % (idx, query))
+        gallery = gallery_path_list[indice]
+        tf.logging.info('gallery %d indice ==> %s ' % (indice, gallery))
+        tf.logging.info('++++++++++++\n')
+
+    w = 50
+    h = 50
+    columns = 8
+    rows = 1
+
+    tf.logging.info('display images -> \n')
+    fig, ax = plt.subplots(nrows=rows, ncols=columns)
+    # fig = plt.figure()
+
+    top_indi_list = top_indices.tolist()
+    for idx, indice in enumerate(top_indi_list):
+        query = query_path_list[idx]
+        for i, path in enumerate(query):
+            path = path.decode("utf-8")
+            im = cv2.imread(path)
+            im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_LINEAR)
+            fig.add_subplot(rows, columns, i+1)
+            plt.imshow(cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB))
+        # plt.show()
+
+        gallery = gallery_path_list[indice]
+        for i, path2 in enumerate(gallery):
+            path2 = path2.decode("utf-8")
+            im = cv2.imread(path2)
+            im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_LINEAR)
+            fig.add_subplot(rows, columns, i+1)
+            plt.imshow(cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB))
+        plt.show()
+        tf.logging.info('step...')
 
 
-# TODO
-def get_top5(cost_matrix):
-    tf.logging.info('')
 
+def match(metric, galleries, queries):
+    matrix = metric.distance(queries, galleries)
 
-# TODO
-def match(metric, galleries, queries, gallery_paths, query_paths):
-    max_distance = metric.matching_threshold
+    top_indice = np.argmin(matrix, axis=1)
+    # idx = np.argpartition(a, range(M))[:, :-M - 1:-1]  # topM_ind
+    # out = a[np.arange(a.shape[0])[:, None], idx]  # topM_score
+    # TODO: get value from indice
+    # out_top1 = matrix[np.arange(matrix.shape[0])[:, None], top_indice]
+    return top_indice
 
-    cost_matrix = metric.distance(queries, galleries)
-    # TODO:
-    # 1. min 값을 가진 top 3~5 의 index 를 구한다.
-    # 2. 위 index 에 해당하는 이미지 이름을 가져와서 그린다.
-
-
-    # cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
-    # indices = linear_assignment(cost_matrix)
-
-    # matches, unmatched_tracks, unmatched_detections = [], [], []
-    # for col, detection_idx in enumerate(detection_indices):
-    #     if col not in indices[:, 1]:
-    #         unmatched_detections.append(detection_idx)
-    # for row, track_idx in enumerate(track_indices):
-    #     if row not in indices[:, 0]:
-    #         unmatched_tracks.append(track_idx)
-    # for row, col in indices:
-    #     track_idx = track_indices[row]
-    #     detection_idx = detection_indices[col]
-    #     if cost_matrix[row, col] > max_distance:
-    #         unmatched_tracks.append(track_idx)
-    #         unmatched_detections.append(detection_idx)
-    #     else:
-    #         matches.append((track_idx, detection_idx))
-    # return matches, unmatched_tracks, unmatched_detections
-    #
-    # matches = matches_a # + matches_b
-    # # unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))
-    # return matches  # , unmatched_tracks, unmatched_detections
+    # TODO: Top-N indices
+    # top_indices = np.argpartition(matrix, NUM_TOP, axis=1)[:, :NUM_TOP]
+    # return top_indices
 
 
 def main(unused_argv):
@@ -213,14 +229,11 @@ def main(unused_argv):
 
         # The distance metric used for measurement to query.
         metric = matching.NearestNeighborDistanceMetric("cosine", FLAGS.max_cosine_distance)
-        # TODO:
         # matching
-        cost_matrix = match(metric, gallery_features_list, query_features_list,
-                            gallery_path_list, query_path_list)
-        top5 = get_top5(cost_matrix)
+        top_indices = match(metric, gallery_features_list, query_features_list)
 
         # display top 5 image correspond to target
-        display_retrieval(top5)
+        display_retrieval(top_indices, gallery_path_list, query_path_list)
 
 
 if __name__ == '__main__':
