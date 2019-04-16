@@ -27,5 +27,5 @@ allow for fast training and inference.
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
 - https://github.com/ace19-dev/models/tree/master/official/resnet
-- https://github.com/nwojke/cosine_metric_learning
+- https://arxiv.org/abs/1812.00442
 - https://github.com/ace19-dev/gvcnn
