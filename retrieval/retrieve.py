@@ -46,6 +46,10 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/modelnet',
                     'Where the dataset reside.')
 
+flags.DEFINE_string('output_dir',
+                    '/home/ace19/dl_data/modelnet/retrieval_result',
+                    'Where the dataset reside.')
+
 flags.DEFINE_string('checkpoint_path',
                     '../models',
                     'Directory where to read training checkpoints.')
@@ -67,7 +71,7 @@ flags.DEFINE_string('nn_budget', None,
 
 
 MODELNET_GALLERY_SIZE = 2525
-MODELNET_QUERY_SIZE = 50
+MODELNET_QUERY_SIZE = 25
 
 NUM_TOP = 3
 
@@ -84,20 +88,20 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
         tf.logging.info('++++++++++++\n')
 
     # settings
-    # h, w = 50, 50  # for raster image
+    w, h = 30, 30  # for raster image
     columns = 8
     rows = 2
 
     tf.logging.info('display images -> \n')
     top_indi_list = top_indices.tolist()
     for idx, indice in enumerate(top_indi_list):
-        fig = plt.figure()
+        fig = plt.figure(figsize=(w,h))
         # fig.suptitle("Query images and Gallery images", fontsize=16)
 
         query = query_path_list[idx]
         # subplot1 = fig.add_subplot(111)
-        # p = query[0].decode("utf-8")
-        # title = p.split('/')[-1].split('.')[0]
+        p = query[0].decode("utf-8")
+        title = p.split('/')[-1].split('.')[0]
         # subplot1.set_title('query_' + str(idx) + 'th [' + title + ']')
         ax = []
         for i, path in enumerate(query):
@@ -105,9 +109,9 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
             img = cv2.imread(path)
             # create subplot and append to ax
             ax.append(fig.add_subplot(rows, columns, i+1))
-            # label = path.split('/')[-1]
-            # ax[-1].set_title(label)  # set title
-            plt.imshow(img)
+            label = path.split('/')[-1]
+            ax[-1].set_title(label)  # set title
+            plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
         gallery = gallery_path_list[indice]
         # subplot2 = fig.add_subplot(111)
@@ -120,11 +124,12 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
             img2 = cv2.imread(path2)
             # create subplot and append to ax
             ax2.append(fig.add_subplot(rows, columns, i+1+j+1))
-            # label2 = path2.split('/')[-1]
-            # ax2[-1].set_title(label2)  # set title
+            label2 = path2.split('/')[-1]
+            ax2[-1].set_title(label2)  # set title
             plt.imshow(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
 
         plt.tight_layout()
+        plt.savefig(os.path.join(FLAGS.output_dir, 'query-' + title))
         plt.show()
         plt.close(fig)
 
