@@ -13,7 +13,7 @@
 
 ## Retrieval
 - deep metric learning
-- extract feature by train.py
+- extract features by train.py
 - prepare query/gallery sources
 - retrieve.py
     
