@@ -18,7 +18,7 @@
 - retrieve.py
     
 ## TODO
-- 
+- improve retrieval module.
 
 ## Notice
 - The network architecture used in our experiments is relatively shallow to 
