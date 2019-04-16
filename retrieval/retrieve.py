@@ -105,8 +105,8 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
             img = cv2.imread(path)
             # create subplot and append to ax
             ax.append(fig.add_subplot(rows, columns, i+1))
-            label = path.split('/')[-1]
-            ax[-1].set_title(label)  # set title
+            # label = path.split('/')[-1]
+            # ax[-1].set_title(label)  # set title
             plt.imshow(img)
 
         gallery = gallery_path_list[indice]
@@ -120,8 +120,8 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
             img2 = cv2.imread(path2)
             # create subplot and append to ax
             ax2.append(fig.add_subplot(rows, columns, i+1+j+1))
-            label2 = path2.split('/')[-1]
-            ax2[-1].set_title(label2)  # set title
+            # label2 = path2.split('/')[-1]
+            # ax2[-1].set_title(label2)  # set title
             plt.imshow(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
 
         plt.tight_layout()
