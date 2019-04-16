@@ -26,7 +26,7 @@ def _pdist(a, b):
     r2 = np.clip(r2, 0., float(np.inf))
     return r2
 
-
+# TODO: modify
 def _cosine_distance(a, b, data_is_normalized=False):
     """Compute pair-wise cosine distance between points in `a` and `b`.
 
@@ -43,13 +43,20 @@ def _cosine_distance(a, b, data_is_normalized=False):
     Returns
     -------
     ndarray
-        Returns a matrix of size len(a), len(b) such that eleement (i, j)
+        Returns a matrix of size len(a), len(b) such that element (i, j)
         contains the squared distance between `a[i]` and `b[j]`.
 
     """
     if not data_is_normalized:
-        a = np.asarray(a) / np.linalg.norm(a, axis=1, keepdims=True)
-        b = np.asarray(b) / np.linalg.norm(b, axis=1, keepdims=True)
+        # To avoid RuntimeWarning: invalid value encountered in true_divide import numpy as np
+        a_norm = np.linalg.norm(a, axis=1, keepdims=True)
+        a = np.asarray(a) / np.where(a_norm==0, 1, a_norm)
+        b_norm = np.linalg.norm(b, axis=1, keepdims=True)
+        b = np.asarray(b) / np.where(b_norm==0, 1, b_norm)
+    else:
+        a = np.asarray(a)
+        b = np.asarray(b)
+
     return 1. - np.dot(a, b.T)
 
 
@@ -132,25 +139,6 @@ class NearestNeighborDistanceMetric(object):
         self.matching_threshold = matching_threshold
         self.budget = budget
         self.samples = {}
-
-    # def partial_fit(self, features, targets, active_targets):
-    #     """Update the distance metric with new data.
-    #
-    #     Parameters
-    #     ----------
-    #     features : ndarray
-    #         An NxM matrix of N features of dimensionality M.
-    #     targets : ndarray
-    #         An integer array of associated target identities.
-    #     active_targets : List[int]
-    #         A list of targets that are currently present in the scene.
-    #
-    #     """
-    #     for feature, target in zip(features, targets):
-    #         self.samples.setdefault(target, []).append(feature)
-    #         if self.budget is not None:
-    #             self.samples[target] = self.samples[target][-self.budget:]
-    #     self.samples = {k: self.samples[k] for k in active_targets}
 
     def distance(self, queries, galleries):
         """Compute distance between galleries and queries.

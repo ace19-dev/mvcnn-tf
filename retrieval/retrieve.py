@@ -21,13 +21,13 @@ for application of the cosine softmax classifier.
 
 '''
 
+import cv2
+import matplotlib.pyplot as plt
+
 import datetime
 import os
 import csv
 import numpy as np
-
-import cv2
-import matplotlib.pyplot as plt
 
 import tensorflow as tf
 
@@ -67,7 +67,7 @@ flags.DEFINE_string('nn_budget', None,
 
 
 MODELNET_GALLERY_SIZE = 2525
-MODELNET_QUERY_SIZE = 25
+MODELNET_QUERY_SIZE = 50
 
 NUM_TOP = 3
 
@@ -83,49 +83,57 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
         tf.logging.info('gallery %d indice ==> %s ' % (indice, gallery))
         tf.logging.info('++++++++++++\n')
 
-    w = 50
-    h = 50
+    # settings
+    h, w = 30, 30  # for raster image
+    # fig = plt.figure(figsize=(h, w))
     columns = 8
-    rows = 2
+    rows = 1
 
     tf.logging.info('display images -> \n')
-    # fig, ax = plt.subplots(nrows=rows, ncols=columns)
-    fig = plt.figure(figsize=(50, 50))
-
     top_indi_list = top_indices.tolist()
     for idx, indice in enumerate(top_indi_list):
         query = query_path_list[idx]
+
+        ax = []
+        fig = plt.figure(figsize=(h, w))
         for i, path in enumerate(query):
             path = path.decode("utf-8")
-            im = cv2.imread(path)
-            # im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_NEAREST)
-            sub = fig.add_subplot(rows, columns, i+1)
-            plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-        # plt.show()
+            img = cv2.imread(path)
+            # create subplot and append to ax
+            ax.append(fig.add_subplot(rows, columns, i + 1))
+            label = path.split('/')[-1]
+            ax[-1].set_title(label)  # set title
+            plt.imshow(img)
 
-        gallery = gallery_path_list[indice]
-        for i, path2 in enumerate(gallery):
-            path2 = path2.decode("utf-8")
-            im = cv2.imread(path2)
-            # im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_NEAREST)
-            sub = fig.add_subplot(rows, columns, i+1)
-            plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        fig.suptitle('query_' + str(idx) + ': ' + label.split('.')[0], fontsize=30)
+        # gallery = gallery_path_list[indice]
+        # for i, path2 in enumerate(gallery):
+        #     path2 = path2.decode("utf-8")
+        #     im = cv2.imread(path2)
+        #     # im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_NEAREST)
+        #     fig.add_subplot(rows, columns, i+1)
+        #     plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+
+        plt.tight_layout(True)
         plt.show()
-        tf.logging.info('step...')
+        plt.close(fig)
 
 
+# TODO: get value from indice
+# TODO: top-N indices
+def match(galleries, queries):
+    # The distance metric used for measurement to query.
+    metric = matching.NearestNeighborDistanceMetric("cosine", FLAGS.max_cosine_distance)
+    distance_matrix = metric.distance(queries, galleries)
+    top_indice = np.argmin(distance_matrix, axis=1)
 
-def match(metric, galleries, queries):
-    matrix = metric.distance(queries, galleries)
-
-    top_indice = np.argmin(matrix, axis=1)
+    # get value from indice
     # idx = np.argpartition(a, range(M))[:, :-M - 1:-1]  # topM_ind
     # out = a[np.arange(a.shape[0])[:, None], idx]  # topM_score
-    # TODO: get value from indice
     # out_top1 = matrix[np.arange(matrix.shape[0])[:, None], top_indice]
     return top_indice
 
-    # TODO: Top-N indices
+    # Top-N indices
     # top_indices = np.argpartition(matrix, NUM_TOP, axis=1)[:, :NUM_TOP]
     # return top_indices
 
@@ -181,6 +189,10 @@ def main(unused_argv):
         gallery_tf_filenames = os.path.join(FLAGS.dataset_dir, 'gallery.record')
         query_tf_filenames = os.path.join(FLAGS.dataset_dir, 'query.record')
 
+        # TODO: +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # TODO: It is better to create encode func which replace below codes
+        # TODO: +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
         # gallery images
         gallery_features_list = []
         gallery_path_list = []
@@ -227,10 +239,8 @@ def main(unused_argv):
             query_features_list.extend(_f)
             query_path_list.extend(query_paths)
 
-        # The distance metric used for measurement to query.
-        metric = matching.NearestNeighborDistanceMetric("cosine", FLAGS.max_cosine_distance)
         # matching
-        top_indices = match(metric, gallery_features_list, query_features_list)
+        top_indices = match(gallery_features_list, query_features_list)
 
         # display top 5 image correspond to target
         display_retrieval(top_indices, gallery_path_list, query_path_list)

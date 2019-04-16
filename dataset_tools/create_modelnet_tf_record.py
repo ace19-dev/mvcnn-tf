@@ -26,10 +26,10 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/modelnet/base',
                     'Root Directory to raw modelnet dataset.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/modelnet/query.record',
+                    '/home/ace19/dl_data/modelnet/gallery.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('dataset_category',
-                    'test',
+                    'train',
                     'dataset category, train or test')
 
 FLAGS = flags.FLAGS
@@ -58,12 +58,12 @@ def get_data_map_dict(label_to_index):
     return label_map_dict, view_map_dict
 
 
-def dict_to_tf_example(image,
+def dict_to_tf_example(image_name,
                        label_map_dict=None,
                        view_map_dict=None):
     """
     Args:
-      image: a single image name
+      image_name: a single image name
       label_map_dict: A map from string label names to integers ids.
       image_subdirectory: String specifying subdirectory within the
         PCam dataset directory holding the actual image data.
@@ -85,8 +85,8 @@ def dict_to_tf_example(image,
     labels = []
     keys = []
 
-    view_lst = view_map_dict[image]
-    label = label_map_dict[image]
+    view_lst = view_map_dict[image_name]
+    label = label_map_dict[image_name]
     for i, view_path in enumerate(view_lst):
         filenames.append(view_path.encode('utf8'))
         sourceids.append(view_path.encode('utf8'))
@@ -144,9 +144,10 @@ def main(_):
         if not os.path.isdir(label_path):
             continue
         img_lst = os.listdir(label_path)
+        total = len(img_lst)
         for idx, image in enumerate(img_lst):
             if idx % 100 == 0:
-                tf.logging.info('On image %d of %d', idx, len(img_lst))
+                tf.logging.info('On image %d of %d', idx, total)
             tf_example = dict_to_tf_example(image, label_map_dict, view_map_dict)
             writer.write(tf_example.SerializeToString())
 
