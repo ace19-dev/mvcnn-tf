@@ -28,3 +28,4 @@ allow for fast training and inference.
 - https://github.com/WeiTang114/MVCNN-TensorFlow
 - https://github.com/ace19-dev/models/tree/master/official/resnet
 - https://github.com/nwojke/cosine_metric_learning
+- https://github.com/ace19-dev/gvcnn
