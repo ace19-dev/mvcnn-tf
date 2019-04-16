@@ -84,43 +84,53 @@ def display_retrieval(top_indices, gallery_path_list, query_path_list):
         tf.logging.info('++++++++++++\n')
 
     # settings
-    h, w = 30, 30  # for raster image
-    # fig = plt.figure(figsize=(h, w))
+    # h, w = 50, 50  # for raster image
     columns = 8
-    rows = 1
+    rows = 2
 
     tf.logging.info('display images -> \n')
     top_indi_list = top_indices.tolist()
     for idx, indice in enumerate(top_indi_list):
-        query = query_path_list[idx]
+        fig = plt.figure()
+        # fig.suptitle("Query images and Gallery images", fontsize=16)
 
+        query = query_path_list[idx]
+        # subplot1 = fig.add_subplot(111)
+        # p = query[0].decode("utf-8")
+        # title = p.split('/')[-1].split('.')[0]
+        # subplot1.set_title('query_' + str(idx) + 'th [' + title + ']')
         ax = []
-        fig = plt.figure(figsize=(h, w))
         for i, path in enumerate(query):
             path = path.decode("utf-8")
             img = cv2.imread(path)
             # create subplot and append to ax
-            ax.append(fig.add_subplot(rows, columns, i + 1))
+            ax.append(fig.add_subplot(rows, columns, i+1))
             label = path.split('/')[-1]
             ax[-1].set_title(label)  # set title
             plt.imshow(img)
 
-        fig.suptitle('query_' + str(idx) + ': ' + label.split('.')[0], fontsize=30)
-        # gallery = gallery_path_list[indice]
-        # for i, path2 in enumerate(gallery):
-        #     path2 = path2.decode("utf-8")
-        #     im = cv2.imread(path2)
-        #     # im_resized = cv2.resize(im, (h, w), interpolation=cv2.INTER_NEAREST)
-        #     fig.add_subplot(rows, columns, i+1)
-        #     plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        gallery = gallery_path_list[indice]
+        # subplot2 = fig.add_subplot(111)
+        # p2 = gallery[0].decode("utf-8")
+        # title2 = p2.split('/')[-1].split('.')[0]
+        # subplot2.set_title('gallery_' + str(indice) + 'th [' + title2 + ']')
+        ax2 = []
+        for j, path2 in enumerate(gallery):
+            path2 = path2.decode("utf-8")
+            img2 = cv2.imread(path2)
+            # create subplot and append to ax
+            ax2.append(fig.add_subplot(rows, columns, i+1+j+1))
+            label2 = path2.split('/')[-1]
+            ax2[-1].set_title(label2)  # set title
+            plt.imshow(cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
 
-        plt.tight_layout(True)
+        plt.tight_layout()
         plt.show()
         plt.close(fig)
 
 
-# TODO: get value from indice
-# TODO: top-N indices
+# TODO: get value from indices
+# TODO: get top-N indices
 def match(galleries, queries):
     # The distance metric used for measurement to query.
     metric = matching.NearestNeighborDistanceMetric("cosine", FLAGS.max_cosine_distance)

@@ -6,23 +6,20 @@
 
 ## Quick Start
 - prepare multi-view image
-- execute train.py
+- train.py
 
 ## Evaluation
 - eval.py
 
 ## Retrieval
-- prepare retrieval sources using by create_modelnet_tf_record.py
-- load retrieval target
-
-## Done
-- retrieve module: nearest neighbor queries
-    - Euclidean distance
-    - deep cosine metric learning: <U>learn a feature representation</U>
+- deep metric learning
+- extract feature by train.py
+- prepare query/gallery sources
+- retrieve.py
     
 ## TODO
+- 
 
-    
 ## Notice
 - The network architecture used in our experiments is relatively shallow to 
 allow for fast training and inference.
