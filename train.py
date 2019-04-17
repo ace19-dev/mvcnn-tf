@@ -38,7 +38,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .00015,
+flags.DEFINE_float('base_learning_rate', .0001,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-3,
                    'The rate to decay the base learning rate.')
@@ -51,7 +51,7 @@ flags.DEFINE_float('training_number_of_steps', 300000,
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
 flags.DEFINE_integer('slow_start_step', 510,
                      'Training model with small learning rate for few steps.')
-flags.DEFINE_float('slow_start_learning_rate', 1e-5,
+flags.DEFINE_float('slow_start_learning_rate', .00005,
                    'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
@@ -85,7 +85,7 @@ flags.DEFINE_string('dataset_dir',
                     '/home/ace19/dl_data/modelnet',
                     'Where the dataset reside.')
 
-flags.DEFINE_integer('how_many_training_epochs', 100,
+flags.DEFINE_integer('how_many_training_epochs', 60,
                      'How many training loops to run')
 flags.DEFINE_integer('batch_size', 8, 'batch size')
 flags.DEFINE_integer('num_views', 8, 'number of views')
@@ -253,7 +253,7 @@ def main(unused_argv):
                         feed_dict={X: train_batch_xs,
                                    ground_truth: train_batch_ys,
                                    is_training: True,
-                                   dropout_keep_prob: 0.8})
+                                   dropout_keep_prob: 0.6})
 
                     train_writer.add_summary(train_summary, n_epoch)
                     train_writer.add_summary(grad_vals, n_epoch)
