@@ -26,6 +26,6 @@ allow for fast training and inference.
 
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
-- https://github.com/ace19-dev/models/tree/master/official/resnet
+- https://github.com/tensorflow/models/tree/master/official/resnet
 - https://arxiv.org/abs/1812.00442
 - https://github.com/ace19-dev/gvcnn
