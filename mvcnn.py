@@ -273,7 +273,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
         # for application of the cosine softmax classifier.
         features = tf.nn.l2_normalize(features, axis=1)
 
-        with tf.variable_scope("hypersphere", reuse=reuse):
+        with tf.variable_scope("ball", reuse=reuse):
             weights = \
                 slim.model_variable("mean_vectors",
                                     (feature_dim, int(num_classes)),
