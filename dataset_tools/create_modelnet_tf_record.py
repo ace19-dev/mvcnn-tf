@@ -23,14 +23,14 @@ from dataset_tools import dataset_util
 
 flags = tf.app.flags
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/modelnet/base',
+                    '/home/ace19/dl_data/modelnet',
                     'Root Directory to raw modelnet dataset.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/modelnet/gallery.record',
+                    '/home/ace19/dl_data/modelnet/validate.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('dataset_category',
-                    'train',
-                    'dataset category, train or test')
+                    'validate',
+                    'dataset category, train|validate|test')
 
 FLAGS = flags.FLAGS
 
@@ -40,19 +40,20 @@ def get_data_map_dict(label_to_index):
     view_map_dict = {}
 
     cls_lst = os.listdir(FLAGS.dataset_dir)
-    for i, label in enumerate(cls_lst):
-        label_path = os.path.join(FLAGS.dataset_dir, label, FLAGS.dataset_category)
-        if not os.path.isdir(label_path):
+    for i, cls in enumerate(cls_lst):
+        if not os.path.isdir(os.path.join(FLAGS.dataset_dir, cls)):
             continue
-        img_lst = os.listdir(label_path)
+
+        data_path = os.path.join(FLAGS.dataset_dir, cls, FLAGS.dataset_category)
+        img_lst = os.listdir(data_path)
         for n, img in enumerate(img_lst):
-            img_path = os.path.join(label_path, img)
+            img_path = os.path.join(data_path, img)
             view_lst = os.listdir(img_path)
             views = []
             for k, view in enumerate(view_lst):
                 v_path = os.path.join(img_path, view)
                 views.append(v_path)
-            label_map_dict[img] = label_to_index[label]
+            label_map_dict[img] = label_to_index[cls]
             view_map_dict[img] = views
 
     return label_map_dict, view_map_dict
@@ -140,14 +141,14 @@ def main(_):
     tf.logging.info('Reading from modelnet dataset.')
     cls_lst = os.listdir(FLAGS.dataset_dir)
     for i, label in enumerate(cls_lst):
-        label_path = os.path.join(FLAGS.dataset_dir, label, FLAGS.dataset_category)
-        if not os.path.isdir(label_path):
+        data_path = os.path.join(FLAGS.dataset_dir, label, FLAGS.dataset_category)
+        if not os.path.isdir(data_path):
             continue
-        img_lst = os.listdir(label_path)
+        img_lst = os.listdir(data_path)
         total = len(img_lst)
         for idx, image in enumerate(img_lst):
             if idx % 100 == 0:
-                tf.logging.info('On image %d of %d', idx, total)
+                tf.logging.info('On \'%s\' image %d of %d', label, idx, total)
             tf_example = dict_to_tf_example(image, label_map_dict, view_map_dict)
             writer.write(tf_example.SerializeToString())
 

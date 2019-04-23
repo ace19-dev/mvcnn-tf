@@ -92,12 +92,12 @@ flags.DEFINE_integer('num_views', 8, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels',
-                    'airplane,bed,bookshelf,toilet,vase',
+                    'bathtub,bed,chair,desk,dresser,monitor,night_stand,sofa,table,toilet',
                     'Labels to use')
 
 # temporary constant
-MODELNET_TRAIN_DATA_SIZE = 2525
-MODELNET_VALIDATE_DATA_SIZE = 450
+MODELNET_TRAIN_DATA_SIZE = 3232
+MODELNET_VALIDATE_DATA_SIZE = 399
 
 
 def main(unused_argv):
