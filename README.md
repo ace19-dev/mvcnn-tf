@@ -19,6 +19,7 @@
     
 ## TODO
 - improve retrieval module.
+- balanced sampling batch.
 
 ## Notice
 - The network architecture used in our experiments is relatively shallow to 
