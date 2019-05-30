@@ -2,7 +2,7 @@
 ![](assets/mvcnn_framework.png)
 
 ## Data
-- modelnet
+- just download modelnet10 from [here](http://modelnet.cs.princeton.edu/) or [here](https://drive.google.com/file/d/0B4v2jR3WsindMUE3N2xiLVpyLW8/view) from https://github.com/RBirkeland/MVCNN-PyTorch/blob/master/README.md
 - You can create 2D dataset from 3D objects (.obj, .stl, and .off), using [BlenderPhong](https://github.com/WeiTang114/BlenderPhong)
 
 ## Quick Start
@@ -29,6 +29,7 @@ allow for fast training and inference.
 ## References from
 - https://github.com/WeiTang114/MVCNN-TensorFlow
 - https://github.com/WeiTang114/BlenderPhong
+- https://github.com/RBirkeland/MVCNN-PyTorch/blob/master/README.md
 - https://github.com/tensorflow/models/tree/master/official/resnet
 - https://arxiv.org/abs/1812.00442
 - https://github.com/ace19-dev/gvcnn
