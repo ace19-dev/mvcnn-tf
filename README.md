@@ -3,7 +3,7 @@
 
 ## Data
 - modelnet
-- You can create 2D dataset from 3D objects (.obj, .stl, and .off), using BlenderPhong
+- You can create 2D dataset from 3D objects (.obj, .stl, and .off), using [BlenderPhong](https://github.com/WeiTang114/BlenderPhong)
 
 ## Quick Start
 - prepare multi-view image
