@@ -2,9 +2,8 @@
 ![](assets/mvcnn_framework.png)
 
 ## Data
-- Download [modelnet10](http://modelnet.cs.princeton.edu/) directly Or 
+- Download [modelnet10](http://modelnet.cs.princeton.edu/) directly and You can create 2D dataset from 3D objects (.obj, .stl, and .off), using [BlenderPhong](https://github.com/WeiTang114/BlenderPhong)
 - https://drive.google.com/file/d/0B4v2jR3WsindMUE3N2xiLVpyLW8/view from https://github.com/RBirkeland/MVCNN-PyTorch/blob/master/README.md
-- You can create 2D dataset from 3D objects (.obj, .stl, and .off), using [BlenderPhong](https://github.com/WeiTang114/BlenderPhong)
 
 ## Quick Start
 - prepare multi-view image
