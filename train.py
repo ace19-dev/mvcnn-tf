@@ -38,7 +38,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .001,
+flags.DEFINE_float('base_learning_rate', .0005,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-3,
                    'The rate to decay the base learning rate.')
@@ -87,12 +87,12 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 60,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 2, 'batch size')
+flags.DEFINE_integer('batch_size', 4, 'batch size')
 flags.DEFINE_integer('num_views', 12, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
 flags.DEFINE_string('labels',
-                    'bathtub,bed,chair,desk,dresser,monitor,night_stand,sofa,table,toilet',
+                    'airplane,bed,bookshelf,bottle,chair,monitor,sofa,table,toilet,vase',
                     'Labels to use')
 
 # temporary constant
