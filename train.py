@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 
 from utils import train_utils
-import mvcnn
+import model
 import data
 
 
@@ -38,7 +38,7 @@ flags.DEFINE_string('summaries_dir', './models/train_logs',
 
 flags.DEFINE_enum('learning_policy', 'poly', ['poly', 'step'],
                   'Learning rate policy for training.')
-flags.DEFINE_float('base_learning_rate', .0001,
+flags.DEFINE_float('base_learning_rate', .001,
                    'The base learning rate for model training.')
 flags.DEFINE_float('learning_rate_decay_factor', 1e-3,
                    'The rate to decay the base learning rate.')
@@ -56,12 +56,12 @@ flags.DEFINE_float('slow_start_learning_rate', .00005,
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    # './pre-trained/resnet_v2_18.ckpt',
-                    None,
+                    './pre-trained/resnet_v2_50.ckpt',
+                    # None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    # 'resnet_v2_18/logits',
-                    None,
+                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    # None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
@@ -75,7 +75,7 @@ flags.DEFINE_string('checkpoint_model_scope',
                     None,
                     'Model scope in the checkpoint. None if the same as the trained model.')
 flags.DEFINE_string('model_name',
-                    'resnet_v2_18',
+                    'resnet_v2_50',
                     'The name of the architecture to train.')
 flags.DEFINE_boolean('ignore_missing_vars',
                      False,
@@ -87,7 +87,7 @@ flags.DEFINE_string('dataset_dir',
 
 flags.DEFINE_integer('how_many_training_epochs', 60,
                      'How many training loops to run')
-flags.DEFINE_integer('batch_size', 8, 'batch size')
+flags.DEFINE_integer('batch_size', 2, 'batch size')
 flags.DEFINE_integer('num_views', 12, 'number of views')
 flags.DEFINE_integer('height', 224, 'height')
 flags.DEFINE_integer('width', 224, 'width')
@@ -122,10 +122,11 @@ def main(unused_argv):
 
         # metric learning
         logits, features = \
-            mvcnn.mvcnn_with_deep_cosine_metric_learning(X,
+            model.mvcnn_with_deep_cosine_metric_learning(X,
                                                          num_classes,
                                                          is_training=is_training,
-                                                         keep_prob=dropout_keep_prob)
+                                                         keep_prob=dropout_keep_prob,
+                                                         attention_module='se_block')
         # logits, features = mvcnn.mvcnn(X, num_classes)
 
         cross_entropy = tf.compat.v1.losses.sparse_softmax_cross_entropy(labels=ground_truth, logits=logits)

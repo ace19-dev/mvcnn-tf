@@ -12,7 +12,7 @@ import os
 import tensorflow as tf
 
 import data
-import mvcnn
+import model
 
 slim = tf.contrib.slim
 
@@ -53,7 +53,7 @@ def main(unused_argv):
                        name='X')
     ground_truth = tf.placeholder(tf.int64, [None], name='ground_truth')
 
-    logits, _ = mvcnn.mvcnn(X, num_classes, is_training=False)
+    logits, _ = model.mvcnn(X, num_classes, is_training=False)
 
     # prediction = tf.nn.softmax(logits)
     # predicted_labels = tf.argmax(prediction, 1)

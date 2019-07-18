@@ -32,7 +32,7 @@ import numpy as np
 import tensorflow as tf
 
 from retrieval import retrieval_data, matching
-import mvcnn
+import model
 
 
 slim = tf.contrib.slim
@@ -164,7 +164,7 @@ def main(unused_argv):
                        [None, FLAGS.num_views, FLAGS.height, FLAGS.width, 3],
                        name='X')
 
-    _, features = mvcnn.mvcnn_with_deep_cosine_metric_learning(X,
+    _, features = model.mvcnn_with_deep_cosine_metric_learning(X,
                                                                num_classes,
                                                                is_training=False,
                                                                keep_prob=1.0)
