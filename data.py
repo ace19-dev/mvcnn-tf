@@ -40,13 +40,13 @@ class Dataset(object):
 
     def decode(self, serialized_example):
         """Parses an image and label from the given `serialized_example`."""
-        features = tf.parse_single_example(
+        features = tf.io.parse_single_example(
             serialized_example,
             # Defaults are not specified since both keys are required.
             features={
                 # 'image/filename': tf.FixedLenFeature([], tf.string),
-                'image/encoded': tf.FixedLenFeature([self.num_views], tf.string),
-                'image/label': tf.FixedLenFeature([], tf.int64),
+                'image/encoded': tf.io.FixedLenFeature([self.num_views], tf.string),
+                'image/label': tf.io.FixedLenFeature([], tf.int64),
             })
 
         images = []
@@ -56,7 +56,7 @@ class Dataset(object):
         for i, img in enumerate(img_lst):
             # Convert from a scalar string tensor to a float32 tensor with shape
             image_decoded = tf.image.decode_png(img, channels=3)
-            image = tf.image.resize_images(image_decoded, [self.resize_h, self.resize_w])
+            image = tf.image.resize(image_decoded, [self.resize_h, self.resize_w])
             images.append(image)
             # labels.append(lbl_lst[i])
 

@@ -23,13 +23,13 @@ from dataset_tools import dataset_util
 
 flags = tf.app.flags
 flags.DEFINE_string('dataset_dir',
-                    '/home/ace19/dl_data/modelnet',
+                    '/home/ace19/dl_data/modelnet10/view/classes',
                     'Root Directory to raw modelnet dataset.')
 flags.DEFINE_string('output_path',
-                    '/home/ace19/dl_data/modelnet/validate.record',
+                    '/home/ace19/dl_data/modelnet10/validate.record',
                     'Path to output TFRecord')
 flags.DEFINE_string('dataset_category',
-                    'validate',
+                    'test',
                     'dataset category, train|validate|test')
 
 FLAGS = flags.FLAGS
@@ -91,7 +91,7 @@ def dict_to_tf_example(image_name,
     for i, view_path in enumerate(view_lst):
         filenames.append(view_path.encode('utf8'))
         sourceids.append(view_path.encode('utf8'))
-        with tf.gfile.GFile(view_path, 'rb') as fid:
+        with tf.io.gfile.GFile(view_path, 'rb') as fid:
             encoded_png = fid.read()
             encoded_pngs.append(encoded_png)
         encoded_png_io = io.BytesIO(encoded_png)
@@ -123,10 +123,11 @@ def dict_to_tf_example(image_name,
 
 
 def main(_):
-    tf.logging.set_verbosity(tf.logging.INFO)
+    # tf.logging.set_verbosity(tf.logging.INFO)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
-    options = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.GZIP)
-    writer = tf.python_io.TFRecordWriter(FLAGS.output_path, options=options)
+    options = tf.io.TFRecordOptions(tf.compat.v1.python_io.TFRecordCompressionType.GZIP)
+    writer = tf.io.TFRecordWriter(FLAGS.output_path, options=options)
 
     dataset_lst = os.listdir(FLAGS.dataset_dir)
     dataset_lst.sort()
@@ -138,7 +139,7 @@ def main(_):
 
     label_map_dict, view_map_dict = get_data_map_dict(label_to_index)
 
-    tf.logging.info('Reading from modelnet dataset.')
+    tf.compat.v1.logging.info('Reading from modelnet dataset.')
     cls_lst = os.listdir(FLAGS.dataset_dir)
     for i, label in enumerate(cls_lst):
         data_path = os.path.join(FLAGS.dataset_dir, label, FLAGS.dataset_category)
@@ -148,7 +149,7 @@ def main(_):
         total = len(img_lst)
         for idx, image in enumerate(img_lst):
             if idx % 100 == 0:
-                tf.logging.info('On \'%s\' image %d of %d', label, idx, total)
+                tf.compat.v1.logging.info('On \'%s\' image %d of %d', label, idx, total)
             tf_example = dict_to_tf_example(image, label_map_dict, view_map_dict)
             writer.write(tf_example.SerializeToString())
 
@@ -156,4 +157,5 @@ def main(_):
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    # tf.app.run()
+    tf.compat.v1.app.run()

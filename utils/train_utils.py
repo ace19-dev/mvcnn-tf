@@ -95,7 +95,7 @@ def get_model_learning_rate(
     Raises:
       ValueError: If learning policy is not recognized.
     """
-    global_step = tf.train.get_or_create_global_step()
+    global_step = tf.compat.v1.train.get_or_create_global_step()
     if learning_policy == 'step':
         learning_rate = tf.train.exponential_decay(
             base_learning_rate,
@@ -104,7 +104,7 @@ def get_model_learning_rate(
             learning_rate_decay_factor,
             staircase=True)
     elif learning_policy == 'poly':
-        learning_rate = tf.train.polynomial_decay(
+        learning_rate = tf.compat.v1.train.polynomial_decay(
             base_learning_rate,
             global_step,
             training_number_of_steps,
@@ -137,7 +137,7 @@ def _gather_loss(regularization_losses, scope):
 
     # Compute and aggregate losses on the clone device.
     all_losses = []
-    losses = tf.get_collection(tf.GraphKeys.LOSSES, scope)
+    losses = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.LOSSES, scope)
     if losses:
         loss = tf.add_n(losses, name='losses')
         # if num_clones > 1:
@@ -153,11 +153,11 @@ def _gather_loss(regularization_losses, scope):
 
     # Add the summaries out of the clone device block.
     if loss is not None:
-        tf.summary.scalar('/'.join(filter(None,
+        tf.compat.v1.summary.scalar('/'.join(filter(None,
                                           ['Losses', 'loss'])),
                           loss)
     if regularization_loss is not None:
-        tf.summary.scalar('Losses/regularization_loss', regularization_loss)
+        tf.compat.v1.summary.scalar('Losses/regularization_loss', regularization_loss)
     return sum_loss
 
 
@@ -238,8 +238,8 @@ def optimize(optimizer, scope=None, regularization_losses=None, **kwargs):
     grads_and_vars = []
     losses = []
     if regularization_losses is None:
-        regularization_losses = tf.get_collection(
-            tf.GraphKeys.REGULARIZATION_LOSSES, scope)
+        regularization_losses = tf.compat.v1.get_collection(
+            tf.compat.v1.GraphKeys.REGULARIZATION_LOSSES, scope)
     # with tf.name_scope(scope):
     loss, grad = _optimize(optimizer,
                            regularization_losses,

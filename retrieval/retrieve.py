@@ -154,7 +154,7 @@ def match(galleries, queries):
 
 
 def main(unused_argv):
-    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
 
     labels = FLAGS.labels.split(',')
     num_classes = len(labels)
@@ -262,4 +262,4 @@ def main(unused_argv):
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    tf.compat.v1.app.run()

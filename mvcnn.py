@@ -11,7 +11,7 @@ import tensorflow as tf
 slim = tf.contrib.slim
 
 
-RESNET_SIZE = 18
+RESNET_SIZE = 34
 
 
 class ModelnetModel(resnet_model.Model):
@@ -189,14 +189,13 @@ def mvcnn(inputs,
           num_classes,
           is_training=True,
           keep_prob=0.6,
-          reuse=tf.AUTO_REUSE,
+          reuse=tf.compat.v1.AUTO_REUSE,
           scope='mvcnn'):
     '''
     :param inputs: N x V x H x W x C tensor
     :return:
     '''
-    # resnet 18
-    model = ModelnetModel(RESNET_SIZE, num_classes=num_classes)
+    model = ModelnetModel(resnet_size=RESNET_SIZE, num_classes=num_classes)
 
     n_views = inputs.get_shape().as_list()[1]
     # transpose views: (NxVxHxWxC) -> (VxNxHxWxC)
@@ -227,7 +226,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
                                           num_classes,
                                           is_training=True,
                                           keep_prob=0.6,
-                                          reuse=tf.AUTO_REUSE,
+                                          reuse=tf.compat.v1.AUTO_REUSE,
                                           scope='mvcnn'):
     '''
     :param inputs: N x V x H x W x C tensor
@@ -240,7 +239,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
     # transpose views: (NxVxHxWxC) -> (VxNxHxWxC)
     views = tf.transpose(inputs, perm=[1, 0, 2, 3, 4])
 
-    with tf.variable_scope(scope, 'mvcnn', [inputs], reuse=reuse):
+    with tf.compat.v1.variable_scope(scope, 'mvcnn', [inputs], reuse=reuse):
         fc_regularizer = slim.l2_regularizer(1e-8)
 
         view_pool = []
@@ -273,7 +272,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
         # for application of the cosine softmax classifier.
         features = tf.nn.l2_normalize(features, axis=1)
 
-        with tf.variable_scope("ball", reuse=reuse):
+        with tf.compat.v1.variable_scope("ball", reuse=reuse):
             weights = \
                 slim.model_variable("mean_vectors",
                                     (feature_dim, int(num_classes)),
@@ -288,7 +287,7 @@ def mvcnn_with_deep_cosine_metric_learning(inputs,
                                     initializer=tf.constant_initializer(0., tf.float32),
                                     regularizer=slim.l2_regularizer(1e-1))
 
-            tf.summary.scalar("scale", scale)
+            tf.compat.v1.summary.scalar("scale", scale)
             scale = tf.nn.softplus(scale)
 
         # Mean vectors in colums, normalize axis 0.
