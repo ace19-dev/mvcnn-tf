@@ -21,6 +21,11 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 
+# temporary constant
+MODELNET10_TRAIN_DATA_SIZE = 5293
+MODELNET10_VALIDATE_DATA_SIZE = 1000
+
+
 
 flags.DEFINE_string('train_logdir', './models',
                     'Where the checkpoint and logs are stored.')
@@ -49,19 +54,19 @@ flags.DEFINE_float('learning_power', 0.9,
 flags.DEFINE_float('training_number_of_steps', 300000,
                    'The number of steps used for training.')
 flags.DEFINE_float('momentum', 0.9, 'The momentum value to use')
-flags.DEFINE_integer('slow_start_step', 510,
+flags.DEFINE_integer('slow_start_step', MODELNET10_TRAIN_DATA_SIZE * 2,
                      'Training model with small learning rate for few steps.')
 flags.DEFINE_float('slow_start_learning_rate', .00005,
                    'Learning rate employed during slow start.')
 
 # Settings for fine-tuning the network.
 flags.DEFINE_string('pre_trained_checkpoint',
-                    './pre-trained/resnet_v2_50.ckpt',
-                    # None,
+                    # './pre-trained/resnet_v2_50.ckpt',
+                    None,
                     'The pre-trained checkpoint in tensorflow format.')
 flags.DEFINE_string('checkpoint_exclude_scopes',
-                    'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
-                    # None,
+                    # 'resnet_v2_50/logits,resnet_v2_50/SpatialSqueeze,resnet_v2_50/predictions',
+                    None,
                     'Comma-separated list of scopes of variables to exclude '
                     'when restoring from a checkpoint.')
 flags.DEFINE_string('trainable_scopes',
@@ -95,10 +100,6 @@ flags.DEFINE_string('labels',
                     'airplane,bed,bookshelf,bottle,chair,monitor,sofa,table,toilet,vase',
                     'Labels to use')
 
-# temporary constant
-MODELNET_TRAIN_DATA_SIZE = 5293
-MODELNET_VALIDATE_DATA_SIZE = 1000
-
 
 def main(unused_argv):
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
@@ -106,8 +107,7 @@ def main(unused_argv):
     labels = FLAGS.labels.split(',')
     num_classes = len(labels)
 
-    tf.io.gfile.makedirs(FLAGS.train_logdir)
-    tf.compat.v1.logging.info('Creating train logdir: %s', FLAGS.train_logdir)
+    # tf.compat.v1.logging.info('Creating train logdir: %s', FLAGS.train_logdir)
 
     with tf.Graph().as_default() as graph:
         global_step = tf.compat.v1.train.get_or_create_global_step()
@@ -212,11 +212,11 @@ def main(unused_argv):
                 train_utils.restore_fn(FLAGS)
 
             start_epoch = 0
-            training_batches = int(MODELNET_TRAIN_DATA_SIZE / FLAGS.batch_size)
-            if MODELNET_TRAIN_DATA_SIZE % FLAGS.batch_size > 0:
+            training_batches = int(MODELNET10_TRAIN_DATA_SIZE / FLAGS.batch_size)
+            if MODELNET10_TRAIN_DATA_SIZE % FLAGS.batch_size > 0:
                 training_batches += 1
-            val_batches = int(MODELNET_VALIDATE_DATA_SIZE / FLAGS.batch_size)
-            if MODELNET_VALIDATE_DATA_SIZE % FLAGS.batch_size > 0:
+            val_batches = int(MODELNET10_VALIDATE_DATA_SIZE / FLAGS.batch_size)
+            if MODELNET10_VALIDATE_DATA_SIZE % FLAGS.batch_size > 0:
                 val_batches += 1
 
             # The filenames argument to the TFRecordDataset initializer can either
@@ -305,7 +305,7 @@ def main(unused_argv):
                 total_val_accuracy /= validation_count
                 tf.compat.v1.logging.info('Confusion Matrix:\n %s' % (total_conf_matrix))
                 tf.compat.v1.logging.info('Validation accuracy = %.1f%% (N=%d)' %
-                                (total_val_accuracy * 100, MODELNET_VALIDATE_DATA_SIZE))
+                                (total_val_accuracy * 100, MODELNET10_VALIDATE_DATA_SIZE))
 
                 # Save the model checkpoint periodically.
                 if (n_epoch <= FLAGS.how_many_training_epochs-1):
@@ -315,4 +315,8 @@ def main(unused_argv):
 
 
 if __name__ == '__main__':
+    if tf.io.gfile.exists(FLAGS.train_logdir):
+        tf.io.gfile.rmtree(FLAGS.train_logdir)
+    tf.io.gfile.makedirs(FLAGS.train_logdir)
+
     tf.compat.v1.app.run()
